@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Units of Measurement - GarageFlow{% endblock %}
+
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Units of Measurement</h1>
+    <p class="page-sub">Manage inventory units</p>
+  </div>
+  <div class="breadcrumb">
+    <a href="{% url 'inventory:list' %}">Inventory</a> <i data-icon="chevronRight"></i> <span>Units</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div class="page active" id="page-uoms">
+    <form class="page-actions" method="get">
+      <div class="filters-row">
+        <div class="search-box" style="width:500px">
+          <i data-icon="search"></i>
+          <input type="text" name="q" placeholder="Search units…" autofocus/>
+        </div>
+        <button class="btn btn-primary">
+          <i data-icon="search"></i>
+          Search
+        </button>
+      </div>
+      <div class="filters-row">
+        <a href="{% url 'inventory:list' %}" class="btn btn-secondary">
+          <i data-icon="chevronRight"></i>
+          Back to Inventory
+        </a>
+        {% if perms.inventory.add_uom %}
+        <a href="{% url 'inventory:uom_add' %}" class="btn btn-primary">
+          <i data-icon="plus"></i>
+          Add Unit
+        </a>
+        {% endif %}
+      </div>
+    </form>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Units of Measurement</div>
+        <span class="info-secondary">{{ uoms|length }} units</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Unit</th>
+              <th>Description</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for uom in uoms %}
+            <tr>
+              <!-- Unit -->
+              <td>
+                <div class="cell-profile">
+                  <div class="avatar blue">
+                    {{ uom.name|first|upper }}
+                  </div>
+                  <div class="info-stacked">
+                    <div class="info-primary">{{ uom.name }}</div>
+                  </div>
+                </div>
+              </td>
+              <!-- Description -->
+              <td class="info-secondary">{{ uom.description|truncatewords:8|default:"-" }}</td>
+              <!-- Created -->
+              <td class="info-secondary">{{ uom.created_at|date:"M d, Y" }}</td>
+              <!-- Actions -->
+              <td>
+                <div class="action-buttons">
+                  {% if perms.inventory.change_uom %}
+                  <a href="{% url 'inventory:uom_edit' uom.pk %}" class="action-btn edit" title="Edit">
+                    <i data-icon="edit"></i>
+                  </a>
+                  {% endif %}
+                  {% if perms.inventory.delete_uom %}
+                  <a href="{% url 'inventory:uom_delete' uom.pk %}" class="action-btn delete" title="Delete">
+                    <i data-icon="trash"></i>
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" class="info-secondary">No units found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

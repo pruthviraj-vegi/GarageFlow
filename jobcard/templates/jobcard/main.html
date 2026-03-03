@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Job Cards - GarageFlow{% endblock %}
+
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Job Cards</h1>
+    <p class="page-sub">Manage service & repair job cards</p>
+  </div>
+  <div class="breadcrumb">
+    Dashboard <i data-icon="chevronRight"></i> <span>Job Cards</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+  <!-- ══ JOB CARDS ══ -->
+  <div class="page active" id="page-jobcards">
+    <form class="page-actions" id="jobcard-search-form" onsubmit="return false;">
+      <div class="filters-row">
+        <div class="search-box" style="width:500px">
+          <i data-icon="search"></i>
+          <input type="text" name="q" value="{{ search_query }}" placeholder="Search job cards…" autofocus/>
+        </div>
+        <select name="status" class="filter-select" onchange="reloadTable('jobcard-table')">
+          <option value="">All Statuses</option>
+          {% for value, label in statuses %}
+          <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary" onclick="reloadTable('jobcard-table')">
+          <i data-icon="search"></i>
+          Search
+        </button>
+      </div>
+      {% if perms.jobcard.add_jobcard %}
+      <a href="{% url 'jobcard:add' %}" class="btn btn-primary">
+        <i data-icon="plus"></i>
+        Add Job Card
+      </a>
+      {% endif %}
+    </form>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Job Card Records</div>
+        <span class="info-secondary">{{ jobcards_count }} job cards</span>
+      </div>
+      <div class="table-wrap">
+        <table id="jobcard-table">
+          <thead>
+            <tr>
+              <th data-sort="job_card_number">Job Card</th>
+              <th data-sort="customer__name">Customer</th>
+              <th data-sort="vehicle_number">Vehicle</th>
+              <th data-sort="odometer_reading">Odometer</th>
+              <th>Amount</th>
+              <th data-sort="status">Status</th>
+              <th data-sort="created_at">Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="jobcard-table-body">
+            <!-- Data loaded via AJAX -->
+            <tr>
+                <td colspan="8" class="text-center loading-cell">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination Container -->
+    <div id="jobcard-table_pagination"></div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        initTableAjax(
+            'jobcard-search-form', 
+            'jobcard-table', 
+            '{% url "jobcard:fetch" %}', 
+            {
+                method: 'GET',
+                debounceDelay: 400,
+                placeholder: 'Loading job cards...'
+            },
+            true // includeInputs = true to listen to input events
+        );
+        initTableSorting('jobcard-table');
+    });
+</script>
+{% endblock extra_js %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Inventory - GarageFlow{% endblock %}
+
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Inventory</h1>
+    <p class="page-sub">Manage spare parts and stock</p>
+  </div>
+  <div class="breadcrumb">
+    Dashboard <i data-icon="chevronRight"></i> <span>Inventory</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div class="page active" id="page-inventory">
+    <form class="page-actions" id="inventory-search-form" onsubmit="return false;">
+      <div class="filters-row">
+        <div class="search-box" style="width:500px">
+          <i data-icon="search"></i>
+          <input type="text" name="q" value="{{ search_query }}" placeholder="Search inventory…" autofocus autocomplete="off"/>
+        </div>
+        <button type="submit" class="btn btn-primary" onclick="reloadTable('inventory-table')">
+          <i data-icon="search"></i>
+          Search
+        </button>
+      </div>
+      <div class="filters-row">
+        {% if perms.inventory.add_category %}
+        <a href="{% url 'inventory:category_list' %}" class="btn btn-secondary">
+          <i data-icon="settings"></i>
+          Categories
+        </a>
+        {% endif %}
+        {% if perms.inventory.add_uom %}
+        <a href="{% url 'inventory:uom_list' %}" class="btn btn-secondary">
+          <i data-icon="settings"></i>
+          Units
+        </a>
+        {% endif %}
+        {% if perms.inventory.add_inventory %}
+        <a href="{% url 'inventory:add' %}" class="btn btn-primary">
+          <i data-icon="plus"></i>
+          Add Item
+        </a>
+        {% endif %}
+      </div>
+    </form>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Spare Parts Inventory</div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end;">
+          <span class="info-secondary">{{ items_count }} items in stock</span>
+          <span class="info-secondary">{{ total_value|currency_nonDecimal }}</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="inventory-table">
+          <thead>
+            <tr>
+              <th data-sort="name">Item</th>
+              <th data-sort="barcode">Barcode</th>
+              <th>Category</th>
+              <th data-sort="quantity">Qty</th>
+              <th data-sort="cost_price">Cost</th>
+              <th data-sort="selling_price">Selling</th>
+              <th data-sort="shelf_location">Location</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-table-body">
+            <!-- Data loaded via AJAX -->
+            <tr>
+                <td colspan="8" class="text-center loading-cell">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Pagination Container -->
+      <div id="inventory-table_pagination"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        initTableAjax(
+            'inventory-search-form', 
+            'inventory-table', 
+            '{% url "inventory:fetch" %}', 
+            {
+                method: 'GET',
+                debounceDelay: 400,
+                placeholder: 'Loading inventory...'
+            },
+            true // includeInputs = true to listen to input events
+        );
+        initTableSorting('inventory-table');
+    });
+</script>
+{% endblock extra_js %}

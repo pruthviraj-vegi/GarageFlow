@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-sub">Fill in unit details below</p>
+  </div>
+  <div class="breadcrumb">
+    <a href="{% url 'inventory:uom_list' %}">Units</a> <i data-icon="chevronRight"></i> <span>{{ title }}</span>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page active">
+    <div class="form-container">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">{{ title }}</div>
+            <div class="card-sub">Unit of Measurement Information</div>
+          </div>
+          <a href="{% url 'inventory:uom_list' %}" class="btn btn-secondary btn-sm">Back to List</a>
+        </div>
+
+        <div class="card-body form-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <!-- Unit Details -->
+            <div class="form-section">
+              <div class="form-section-title">Unit Details</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.name.id_for_label }}">
+                    {{ form.name.label }} <span>*</span>
+                  </label>
+                  {{ form.name }}
+                  {% if form.name.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.name.errors }}</div></div>
+                  {% endif %}
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label" for="{{ form.description.id_for_label }}">
+                    {{ form.description.label }}
+                  </label>
+                  {{ form.description }}
+                  {% if form.description.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.description.errors }}</div></div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="divider form-divider"></div>
+
+            <div class="form-actions">
+              <a href="{% url 'inventory:uom_list' %}" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary">Save Unit</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

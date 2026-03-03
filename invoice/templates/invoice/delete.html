@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Delete - GarageFlow{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Delete Invoice</h1>
+    <p class="page-sub">Confirm invoice deletion</p>
+  </div>
+  <div class="breadcrumb">
+    <a href="{% url 'invoice:list' %}">Invoices</a> <i data-icon="chevronRight"></i> <span>Delete Invoice</span>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page active">
+    <div class="delete-container">
+      <div class="card card-danger">
+        <div class="card-header card-header-danger">
+          <div class="card-title">Confirm Deletion</div>
+        </div>
+        <div class="card-body delete-body">
+          <div class="delete-icon">
+            <i data-icon="trash"></i>
+          </div>
+          <h3 class="delete-title">Delete Invoice?</h3>
+          <p class="delete-message">
+            Are you sure you want to delete <strong>{{ object.invoice_number }}</strong> for {{ object.customer.name }}?<br>
+            This action cannot be undone.
+          </p>
+
+          <form method="post">
+            {% csrf_token %}
+            <div class="delete-actions">
+              <a href="{% url 'invoice:list' %}" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-danger">Confirm Delete</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

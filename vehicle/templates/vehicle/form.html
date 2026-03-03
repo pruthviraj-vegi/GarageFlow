@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-sub">Fill in vehicle model details below</p>
+  </div>
+  <div class="breadcrumb">
+    <a href="{% url 'vehicle:list' %}">Vehicle Models</a> <i data-icon="chevronRight"></i> <span>{{ title }}</span>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page active">
+    <div class="form-container">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">{{ title }}</div>
+            <div class="card-sub">Vehicle Model Information</div>
+          </div>
+          <a href="{% url 'vehicle:list' %}" class="btn btn-secondary btn-sm">Back to List</a>
+        </div>
+
+        <div class="card-body form-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <!-- Vehicle Identity -->
+            <div class="form-section">
+              <div class="form-section-title">Vehicle Identity</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.make.id_for_label }}">
+                    {{ form.make.label }} <span>*</span>
+                  </label>
+                  {{ form.make }}
+                  {% if form.make.errors %}
+                  <div class="form-feedback">
+                    <div class="form-error">{{ form.make.errors }}</div>
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.model_name.id_for_label }}">
+                    {{ form.model_name.label }} <span>*</span>
+                  </label>
+                  {{ form.model_name }}
+                  {% if form.model_name.help_text or form.model_name.errors %}
+                  <div class="form-feedback">
+                    {% if form.model_name.errors %}
+                    <div class="form-error">{{ form.model_name.errors }}</div>
+                    {% else %}
+                    <div class="form-hint">{{ form.model_name.help_text }}</div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Technical Specifications -->
+            <div class="form-section">
+              <div class="form-section-title">Technical Specifications</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.fuel_type.id_for_label }}">
+                    {{ form.fuel_type.label }} <span>*</span>
+                  </label>
+                  {{ form.fuel_type }}
+                  {% if form.fuel_type.errors %}
+                  <div class="form-feedback">
+                    <div class="form-error">{{ form.fuel_type.errors }}</div>
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.transmission.id_for_label }}">
+                    {{ form.transmission.label }} <span>*</span>
+                  </label>
+                  {{ form.transmission }}
+                  {% if form.transmission.errors %}
+                  <div class="form-feedback">
+                    <div class="form-error">{{ form.transmission.errors }}</div>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Additional Notes -->
+            <div class="form-section">
+              <div class="form-section-title">Additional Notes</div>
+              <div class="form-grid">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label" for="{{ form.notes.id_for_label }}">
+                    {{ form.notes.label }}
+                  </label>
+                  {{ form.notes }}
+                  {% if form.notes.errors %}
+                  <div class="form-feedback">
+                    <div class="form-error">{{ form.notes.errors }}</div>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="divider form-divider"></div>
+
+            <div class="form-actions">
+              <a href="{% url 'vehicle:list' %}" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary">Save Vehicle Model</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

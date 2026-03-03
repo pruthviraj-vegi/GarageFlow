@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Delete{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Delete Vehicle Model</h1>
+    <p class="page-sub">Confirm vehicle model deletion</p>
+  </div>
+  <div class="breadcrumb">
+    <a href="{% url 'vehicle:list' %}">Vehicle Models</a> <i data-icon="chevronRight"></i> <span>Delete Vehicle Model</span>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page active">
+    <div class="delete-container">
+      <div class="card card-danger">
+        <div class="card-header card-header-danger">
+          <div class="card-title">Confirm Deletion</div>
+        </div>
+        <div class="card-body delete-body">
+          <div class="delete-icon">
+            <i data-icon="trash"></i>
+          </div>
+          <h3 class="delete-title">Delete Vehicle Model?</h3>
+          <p class="delete-message">
+            Are you sure you want to delete <strong>{{ object.make.name }} {{ object.model_name }}</strong>?<br>
+            This action cannot be undone.
+          </p>
+
+          <form method="post">
+            {% csrf_token %}
+            <div class="delete-actions">
+              <a href="{% url 'vehicle:list' %}" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-danger">Confirm Delete</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

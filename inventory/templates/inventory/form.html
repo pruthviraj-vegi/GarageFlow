@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-sub">Fill in inventory item details below</p>
+  </div>
+  <div class="breadcrumb">
+    <a href="{% url 'inventory:list' %}">Inventory</a> <i data-icon="chevronRight"></i> <span>{{ title }}</span>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page active">
+    <div class="form-container">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">{{ title }}</div>
+            <div class="card-sub">Inventory Item Information</div>
+          </div>
+          <a href="{% url 'inventory:list' %}" class="btn btn-secondary btn-sm">Back to List</a>
+        </div>
+
+        <div class="card-body form-body">
+          <form method="post" novalidate id="inventory_form" autocomplete="off">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="form-section">
+              <div class="form-error">{{ form.non_field_errors }}</div>
+            </div>
+            {% endif %}
+
+            <!-- Part Identity -->
+            <div class="form-section">
+              <div class="form-section-title">Part Identity</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.brand.id_for_label }}">
+                    {{ form.brand.label }} <span>*</span>
+                  </label>
+                  {{ form.brand }}
+                  {% if form.brand.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.brand.errors }}</div></div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.name.id_for_label }}">
+                    {{ form.name.label }} <span>*</span>
+                  </label>
+                  {{ form.name }}
+                  {% if form.name.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.name.errors }}</div></div>
+                  {% endif %}
+                </div>
+                </div>
+                <div class="form-grid cols-3">
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.part_number.id_for_label }}">
+                    {{ form.part_number.label }}
+                  </label>
+                  {{ form.part_number }}
+                  {% if form.part_number.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.part_number.errors }}</div></div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.barcode.id_for_label }}">
+                    {{ form.barcode.label }}
+                  </label>
+                  {{ form.barcode }}
+                  {% if form.barcode.help_text or form.barcode.errors %}
+                  <div class="form-feedback">
+                    {% if form.barcode.errors %}
+                    <div class="form-error">{{ form.barcode.errors }}</div>
+                    {% else %}
+                    <div class="form-hint">{{ form.barcode.help_text }}</div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.shelf_location.id_for_label }}">
+                    {{ form.shelf_location.label }}
+                  </label>
+                  {{ form.shelf_location }}
+                  {% if form.shelf_location.help_text or form.shelf_location.errors %}
+                  <div class="form-feedback">
+                    {% if form.shelf_location.errors %}
+                    <div class="form-error">{{ form.shelf_location.errors }}</div>
+                    {% else %}
+                    <div class="form-hint">{{ form.shelf_location.help_text }}</div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Classification -->
+            <div class="form-section">
+              <div class="form-section-title">Classification</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.category.id_for_label }}">
+                    {{ form.category.label }} 
+                  </label>
+                  {{ form.category }}
+                  {% if form.category.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.category.errors }}</div></div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.uom.id_for_label }}">
+                    {{ form.uom.label }} 
+                  </label>
+                  {{ form.uom }}
+                  {% if form.uom.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.uom.errors }}</div></div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="form-section">
+              <div class="form-section-title">Pricing</div>
+              <div class="form-grid cols-4">
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.cost_price.id_for_label }}">
+                    {{ form.cost_price.label }} <span>*</span>
+                  </label>
+                  {{ form.cost_price }}
+                  {% if form.cost_price.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.cost_price.errors }}</div></div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.selling_price.id_for_label }}">
+                    {{ form.selling_price.label }} <span>*</span>
+                  </label>
+                  {{ form.selling_price }}
+                  {% if form.selling_price.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.selling_price.errors }}</div></div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.quantity.id_for_label }}">
+                    {{ form.quantity.label }} <span>*</span>
+                  </label>
+                  {{ form.quantity }}
+                  {% if form.quantity.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.quantity.errors }}</div></div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.low_stock.id_for_label }}">
+                    {{ form.low_stock.label }} <span>*</span>
+                  </label>
+                  {{ form.low_stock }}
+                  {% if form.low_stock.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.low_stock.errors }}</div></div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Vehicle Compatibility -->
+            <div class="form-section">
+              <div class="form-section-title">Vehicle Compatibility</div>
+              <div class="form-grid">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label" for="{{ form.compatible_vehicles.id_for_label }}">
+                    {{ form.compatible_vehicles.label }}
+                  </label>
+                  {{ form.compatible_vehicles }}
+                  {% if form.compatible_vehicles.help_text or form.compatible_vehicles.errors %}
+                  <div class="form-feedback">
+                    {% if form.compatible_vehicles.errors %}
+                    <div class="form-error">{{ form.compatible_vehicles.errors }}</div>
+                    {% else %}
+                    <div class="form-hint">{{ form.compatible_vehicles.help_text }}</div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label" for="{{ form.compatibility_notes.id_for_label }}">
+                    {{ form.compatibility_notes.label }}
+                  </label>
+                  {{ form.compatibility_notes }}
+                  {% if form.compatibility_notes.help_text or form.compatibility_notes.errors %}
+                  <div class="form-feedback">
+                    {% if form.compatibility_notes.errors %}
+                    <div class="form-error">{{ form.compatibility_notes.errors }}</div>
+                    {% else %}
+                    <div class="form-hint">{{ form.compatibility_notes.help_text }}</div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-section">
+              <div class="form-section-title">Additional Info</div>
+              <div class="form-grid">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label" for="{{ form.description.id_for_label }}">
+                    {{ form.description.label }}
+                  </label>
+                  {{ form.description }}
+                  {% if form.description.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.description.errors }}</div></div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="divider form-divider"></div>
+
+            <div class="form-actions">
+              <a href="{% url 'inventory:list' %}" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary">Save Item</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

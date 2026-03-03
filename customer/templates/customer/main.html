@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Customers - GarageFlow{% endblock %}
+
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Customers</h1>
+    <p class="page-sub">Manage customer records</p>
+  </div>
+  <div class="breadcrumb">
+    Dashboard <i data-icon="chevronRight"></i> <span>Customers</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+  <!-- ══ CUSTOMERS ══ -->
+  <div class="page active" id="page-customers">
+    <form class="page-actions" id="customer-search-form" onsubmit="return false;">
+      <div class="filters-row">
+        <div class="search-box" style="width:500px">
+          <i data-icon="search"></i>
+          <input type="text" name="q" value="{{ search_query }}" placeholder="Search customers…" autofocus autocomplete="off"/>
+        </div>
+        <button type="submit" class="btn btn-primary" onclick="reloadTable('customer-table')">
+          <i data-icon="search"></i>
+          Search
+        </button>
+      </div>
+      {% if perms.customer.add_customer %}
+      <a href="{% url 'customer:add' %}" class="btn btn-primary">
+        <i data-icon="plus"></i>
+        Add Customer
+      </a>
+      {% endif %}
+    </form>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Customer Records</div>
+        <span class="info-secondary">{{ customers_count }} customers registered</span>
+      </div>
+      <div class="table-wrap">
+        <table id="customer-table">
+          <thead>
+            <tr>
+              <th data-sort="name">Customer</th>
+              <th data-sort="phone">Phone</th>
+              <th>Address</th>
+              <th data-sort="created_at">Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="customer-table-body">
+            <!-- Data loaded via AJAX (fetchData.js) -->
+            <tr>
+                <td colspan="5" class="text-center loading-cell">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Pagination Container -->
+      <div id="customer-table_pagination"></div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        initTableAjax(
+            'customer-search-form', 
+            'customer-table', 
+            '{% url "customer:fetch" %}', 
+            {
+                method: 'GET',
+                debounceDelay: 400,
+                placeholder: 'Loading customers...'
+            },
+            true // includeInputs = true to listen to input events
+        );
+        initTableSorting('customer-table');
+    });
+</script>
+{% endblock extra_js %}

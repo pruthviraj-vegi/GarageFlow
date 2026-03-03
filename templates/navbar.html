@@ -1,0 +1,100 @@
+{% load static %}
+<!-- ═══════════════════════════════════════
+     MAIN NAVIGATION (Separate Bar)
+     ═══════════════════════════════════════ -->
+<div class="main-nav-bar">
+  <nav class="topbar-nav">
+
+    <!-- Dashboard -->
+    <div class="nav-item-wrap" id="wrap-dashboard">
+    <a href="{% url 'base:home' %}" class="nav-item {% if request.resolver_match.namespace == 'base' %}active{% endif %}" style="text-decoration: none;">
+      <i data-icon="dashboard"></i>
+      <span>Dashboard</span>
+    </a>
+    </div>
+
+    <!-- Job Cards -->
+    <div class="nav-item-wrap" id="wrap-jobcards">
+      <div class="nav-item {% if request.resolver_match.namespace == 'jobcard' %}active{% endif %}">
+        <i data-icon="jobcard"></i>
+        <span>Job Cards</span>
+        <i class="nav-arrow" data-icon="chevronDown"></i>
+      </div>
+      <div class="nav-dropdown">
+        <a href="{% url 'jobcard:list' %}" class="nav-sub-item">All Job Cards</a>
+        <a href="{% url 'jobcard:add' %}" class="nav-sub-item">Add Job Card</a>
+      </div>
+    </div>
+
+    <!-- Customers (mapped to 'members' icon) -->
+    <div class="nav-item-wrap" id="wrap-customers">
+      <div class="nav-item {% if request.resolver_match.namespace == 'customer' %}active{% endif %}">
+        <i data-icon="members"></i>
+        <span>Customers</span>
+        <i class="nav-arrow" data-icon="chevronDown"></i>
+      </div>
+      <div class="nav-dropdown">
+        <a href="{% url 'customer:list' %}" class="nav-sub-item">All Customers</a>
+        <a href="{% url 'customer:add' %}" class="nav-sub-item">Add Customer</a>
+      </div>
+    </div>
+
+    <!-- Vehicles -->
+    <div class="nav-item-wrap" id="wrap-vehicles">
+      <div class="nav-item {% if request.resolver_match.namespace == 'vehicle' %}active{% endif %}">
+        <i data-icon="vehicles"></i>
+        <span>Vehicles</span>
+        <i class="nav-arrow" data-icon="chevronDown"></i>
+      </div>
+      <div class="nav-dropdown">
+        <a href="{% url 'vehicle:list' %}" class="nav-sub-item">All Vehicles</a>
+        <a href="{% url 'vehicle:add' %}" class="nav-sub-item">Add Vehicle</a>
+        <div style="height:1px; background:var(--border); margin:4px 0"></div>
+        <a href="{% url 'vehicle:make-list' %}" class="nav-sub-item">Vehicle Makes</a>
+      </div>
+    </div>
+
+    <!-- Inventory -->
+    <div class="nav-item-wrap" id="wrap-inventory">
+      <div class="nav-item {% if request.resolver_match.namespace == 'inventory' %}active{% endif %}">
+        <i data-icon="inventory"></i>
+        <span>Inventory</span>
+        <i class="nav-arrow" data-icon="chevronDown"></i>
+      </div>
+      <div class="nav-dropdown">
+        <a href="{% url 'inventory:list' %}" class="nav-sub-item">All Items</a>
+        <a href="{% url 'inventory:add' %}" class="nav-sub-item">Add Item</a>
+        <div style="height:1px; background:var(--border); margin:4px 0"></div>
+        <a href="{% url 'inventory:category_list' %}" class="nav-sub-item">Categories</a>
+        <a href="{% url 'inventory:uom_list' %}" class="nav-sub-item">Units of Measure</a>
+      </div>
+    </div>
+
+    <!-- Invoices -->
+    <div class="nav-item-wrap" id="wrap-invoices">
+      <div class="nav-item {% if request.resolver_match.namespace == 'invoice' %}active{% endif %}">
+        <i data-icon="revenue"></i>
+        <span>Invoices</span>
+        <i class="nav-arrow" data-icon="chevronDown"></i>
+      </div>
+      <div class="nav-dropdown">
+        <a href="{% url 'invoice:list' %}" class="nav-sub-item">All Invoices</a>
+        <a href="{% url 'invoice:add' %}" class="nav-sub-item">Add Invoice</a>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div class="nav-item-wrap" id="wrap-users">
+      <div class="nav-item {% if request.resolver_match.namespace == 'user' %}active{% endif %}">
+        <i data-icon="users"></i>
+        <span>Users</span>
+        <i class="nav-arrow" data-icon="chevronDown"></i>
+      </div>
+      <div class="nav-dropdown">
+        <a href="{% url 'user:list' %}" class="nav-sub-item">All Users</a>
+        <a href="{% url 'user:add' %}" class="nav-sub-item">Add User</a>
+      </div>
+    </div>
+
+  </nav>
+</div>

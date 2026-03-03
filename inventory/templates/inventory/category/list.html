@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Categories - GarageFlow{% endblock %}
+
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Categories</h1>
+    <p class="page-sub">Manage inventory categories</p>
+  </div>
+  <div class="breadcrumb">
+    <a href="{% url 'inventory:list' %}">Inventory</a> <i data-icon="chevronRight"></i> <span>Categories</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div class="page active" id="page-categories">
+    <form class="page-actions" method="get">
+      <div class="filters-row">
+        <div class="search-box" style="width:500px">
+          <i data-icon="search"></i>
+          <input type="text" name="q" placeholder="Search categories…" autofocus/>
+        </div>
+        <button class="btn btn-primary">
+          <i data-icon="search"></i>
+          Search
+        </button>
+      </div>
+      <div class="filters-row">
+        <a href="{% url 'inventory:list' %}" class="btn btn-secondary">
+          <i data-icon="chevronRight"></i>
+          Back to Inventory
+        </a>
+        {% if perms.inventory.add_category %}
+        <a href="{% url 'inventory:category_add' %}" class="btn btn-primary">
+          <i data-icon="plus"></i>
+          Add Category
+        </a>
+        {% endif %}
+      </div>
+    </form>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Inventory Categories</div>
+        <span class="info-secondary">{{ categories|length }} categories</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Parent</th>
+              <th>Description</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cat in categories %}
+            <tr>
+              <!-- Category -->
+              <td>
+                <div class="cell-profile">
+                  <div class="avatar blue">
+                    {{ cat.name|first|upper }}
+                  </div>
+                  <div class="info-stacked">
+                    <div class="info-primary">{{ cat.name }}</div>
+                  </div>
+                </div>
+              </td>
+              <!-- Parent -->
+              <td class="info-secondary">{{ cat.parent.name|default:"-" }}</td>
+              <!-- Description -->
+              <td class="info-secondary">{{ cat.description|truncatewords:8|default:"-" }}</td>
+              <!-- Created -->
+              <td class="info-secondary">{{ cat.created_at|date:"M d, Y" }}</td>
+              <!-- Actions -->
+              <td>
+                <div class="action-buttons">
+                  {% if perms.inventory.change_category %}
+                  <a href="{% url 'inventory:category_edit' cat.pk %}" class="action-btn edit" title="Edit">
+                    <i data-icon="edit"></i>
+                  </a>
+                  {% endif %}
+                  {% if perms.inventory.delete_category %}
+                  <a href="{% url 'inventory:category_delete' cat.pk %}" class="action-btn delete" title="Delete">
+                    <i data-icon="trash"></i>
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="info-secondary">No categories found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

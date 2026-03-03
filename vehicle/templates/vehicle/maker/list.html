@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Vehicle Makes - GarageFlow{% endblock %}
+
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Vehicle Makes</h1>
+    <p class="page-sub">Manage vehicle manufacturers</p>
+  </div>
+  <div class="breadcrumb">
+    <a href="{% url 'vehicle:list' %}">Vehicle Models</a> <i data-icon="chevronRight"></i> <span>Makes</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div class="page active" id="page-makes">
+    <form class="page-actions" method="get">
+      <div class="filters-row">
+        <div class="search-box" style="width:500px">
+          <i data-icon="search"></i>
+          <input type="text" name="q" value="{{ search_query }}" placeholder="Search makes…" autofocus/>
+        </div>
+        <button class="btn btn-primary">
+          <i data-icon="search"></i>
+          Search
+        </button>
+      </div>
+      <div class="filters-row">
+        <a href="{% url 'vehicle:list' %}" class="btn btn-secondary">
+          <i data-icon="chevronRight"></i>
+          Back to Models
+        </a>
+        {% if perms.vehicle.add_vehiclemake %}
+        <a href="{% url 'vehicle:make-add' %}" class="btn btn-primary">
+          <i data-icon="plus"></i>
+          Add Make
+        </a>
+        {% endif %}
+      </div>
+    </form>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Vehicle Manufacturers</div>
+        <span class="info-secondary">{{ makes|length }} makes registered</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Make</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in makes %}
+            <tr>
+              <!-- Make -->
+              <td>
+                <div class="cell-profile">
+                  <div class="avatar blue">
+                    {{ m.name|first|upper }}
+                  </div>
+                  <div class="info-stacked">
+                    <div class="info-primary">{{ m.name }}</div>
+                  </div>
+                </div>
+              </td>
+              <!-- Created -->
+              <td class="info-secondary">
+                {{ m.created_at|date:"M d, Y" }}
+              </td>
+              <!-- Actions -->
+              <td>
+                <div class="action-buttons">
+                  {% if perms.vehicle.change_vehiclemake %}
+                  <a href="{% url 'vehicle:make-edit' m.pk %}" class="action-btn edit" title="Edit">
+                    <i data-icon="edit"></i>
+                  </a>
+                  {% endif %}
+                  {% if perms.vehicle.delete_vehiclemake %}
+                  <a href="{% url 'vehicle:make-delete' m.pk %}" class="action-btn delete" title="Delete">
+                    <i data-icon="trash"></i>
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="info-secondary">No vehicle makes found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="pagination">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-secondary btn-sm">&laquo; Previous</a>
+      {% endif %}
+      <span class="info-secondary">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-secondary btn-sm">Next &raquo;</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

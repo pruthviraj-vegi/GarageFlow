@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} - GarageFlow{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-sub">View invoice details and line items</p>
+  </div>
+  <div class="breadcrumb">
+    <a href="{% url 'invoice:list' %}">Invoices</a>
+    <i data-icon="chevronRight"></i>
+    <span>{{ title }}</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div class="page active" id="page-in-detail">
+
+    <!-- 80/20 split -->
+    <div class="jc-detail-layout">
+      <!-- LEFT — Items Table -->
+      <div class="jc-detail-main">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Invoice Items</h3>
+              <p class="card-sub">{{ invoice.invoice_items.count }} item{{ invoice.invoice_items.count|pluralize }}</p>
+            </div>
+            <div style="text-align:right;">
+              <span class="card-sub">Grand Total</span>
+              <h3 class="card-title" style="font-family:'DM Mono',monospace;">{{ invoice.total_amount }}</h3>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Item</th>
+                    <th>Part Number</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in invoice.invoice_items.all %}
+                  <tr>
+                    <td class="info-secondary">{{ forloop.counter }}</td>
+                    <td>{{ item.description }}</td>
+                    <td class="td-mono">{% if item.inventory %}{{ item.inventory.part_number }}{% else %}-{% endif %}</td>
+                    <td class="td-mono">{{ item.quantity|floatformat:2 }}</td>
+                    <td class="td-mono">{{ item.unit_price }}</td>
+                    <td class="td-mono">{{ item.total_price }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="6" class="info-secondary" style="text-align:center;padding:24px;">No items on this invoice.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT — Details Sidebar -->
+      <div class="jc-detail-sidebar">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="jc-id">{{ invoice.invoice_number }}</div>
+              <h3 class="card-title">Details</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="jc-section">
+              <div class="jc-info-item">
+                <span class="jc-info-label">Customer</span>
+                <span class="jc-info-val">{{ invoice.customer.name }}</span>
+              </div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Phone</span>
+                <span class="jc-info-val">{{ invoice.customer.phone|default:"-" }}</span>
+              </div>
+              <div class="divider"></div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Source</span>
+                <span class="jc-info-val">
+                  {% if invoice.job_card %}
+                    <a href="{% url 'jobcard:detail' invoice.job_card.pk %}" class="recent-plate" style="text-decoration:none;">{{ invoice.job_card.job_card_number }}</a>
+                  {% else %}
+                    <span class="info-secondary">Counter Sale</span>
+                  {% endif %}
+                </span>
+              </div>
+              {% if invoice.job_card %}
+              <div class="jc-info-item">
+                <span class="jc-info-label">Vehicle No.</span>
+                <span class="jc-info-val">{{ invoice.job_card.vehicle_number|default:"-" }}</span>
+              </div>
+              {% endif %}
+              <div class="divider"></div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Created</span>
+                <span class="jc-info-val">{{ invoice.created_at|date:"M d, Y, h:i a" }}</span>
+              </div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Created By</span>
+                <span class="jc-info-val">{{ invoice.created_by|default:"-" }}</span>
+              </div>
+              {% if invoice.notes %}
+              <div class="divider"></div>
+              <div class="jc-info-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                <span class="jc-info-label">Notes</span>
+                <span class="jc-info-val" style="white-space: pre-wrap; font-size: 13px;">{{ invoice.notes }}</span>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

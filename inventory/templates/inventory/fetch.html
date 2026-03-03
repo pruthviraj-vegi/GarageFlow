@@ -1,0 +1,60 @@
+{% load static %}
+{% load custom_filters %}
+
+{% for item in page_obj %}
+<tr>
+    <!-- Item -->
+    <td>
+    <div class="cell-profile">
+        <div class="avatar blue">
+        {{ item.name|first|upper }}
+        </div>
+        <div class="info-stacked">
+        <div class="info-primary">
+            <a href="{% url 'inventory:detail' item.pk %}" style="text-decoration: none; color: inherit;">
+            {{ item.name }}
+            {% if item.brand %}({{ item.brand }}){% endif %}
+            </a>
+        </div>
+        <div class="info-secondary">{{ item.part_number|default:"-" }}</div>
+        </div>
+    </div>
+    </td>
+    <!-- Barcode -->
+    <td class="td-mono info-primary">{{ item.barcode }}</td>
+    <!-- Category -->
+    <td>
+    <span class="badge badge-active">{{ item.category.name|default:"-" }}</span>
+    </td>
+    <!-- Qty -->
+    <td class="td-mono info-primary"> {% if item.is_low_stock %}<span style="color: red;">{{ item.available_quantity }}</span>{% else %}{{ item.available_quantity }}{% endif %}</td>
+    <!-- Cost -->
+    <td class="td-mono info-primary">{{ item.cost_price|currency_nonDecimal }}</td>
+    <!-- Selling -->
+    <td class="td-mono info-primary">{{ item.selling_price|currency_nonDecimal }}</td>
+    <!-- Location -->
+    <td class="info-secondary">{{ item.shelf_location|default:"-" }}</td>
+    <!-- Actions -->
+    <td>
+    <div class="action-buttons">
+        <a href="{% url 'inventory:detail' item.pk %}" class="action-btn" title="View Details">
+        <i data-icon="eye"></i>
+        </a>
+        {% if perms.inventory.change_inventory %}
+        <a href="{% url 'inventory:edit' item.pk %}" class="action-btn edit" title="Edit">
+        <i data-icon="edit"></i>
+        </a>
+        {% endif %}
+        {% if perms.inventory.delete_inventory %}
+        <a href="{% url 'inventory:delete' item.pk %}" class="action-btn delete" title="Delete">
+        <i data-icon="trash"></i>
+        </a>
+        {% endif %}
+    </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="8" class="info-secondary text-center">No inventory items found.</td>
+</tr>
+{% endfor %}

@@ -1,0 +1,50 @@
+{% load static %}
+{% load custom_filters %}
+
+{% for v in page_obj %}
+<tr>
+    <!-- Vehicle -->
+    <td>
+    <div class="cell-profile">
+        <div class="avatar blue">
+        {{ v.make.name|first|upper }}
+        </div>
+        <div class="info-stacked">
+        <div class="info-primary">{{ v.model_name }}</div>
+        <div class="info-secondary">{{ v.make.name }}</div>
+        </div>
+    </div>
+    </td>
+    <!-- Fuel Type -->
+    <td>
+    <span class="badge badge-active">{{ v.get_fuel_type_display }}</span>
+    </td>
+    <!-- Transmission -->
+    <td>
+    <span class="badge badge-inactive">{{ v.get_transmission_display }}</span>
+    </td>
+    <!-- Created -->
+    <td class="info-secondary">
+    {{ v.created_at|date:"M d, Y" }}
+    </td>
+    <!-- Actions -->
+    <td>
+    <div class="action-buttons">
+        {% if perms.vehicle.change_vehiclemodel %}
+        <a href="{% url 'vehicle:edit' v.pk %}" class="action-btn edit" title="Edit">
+        <i data-icon="edit"></i>
+        </a>
+        {% endif %}
+        {% if perms.vehicle.delete_vehiclemodel %}
+        <a href="{% url 'vehicle:delete' v.pk %}" class="action-btn delete" title="Delete">
+        <i data-icon="trash"></i>
+        </a>
+        {% endif %}
+    </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="5" class="info-secondary text-center">No vehicle models found.</td>
+</tr>
+{% endfor %}

@@ -1,0 +1,75 @@
+{% load static %}
+{% load custom_filters %}
+
+{% for jc in page_obj %}
+<tr>
+    <!-- Job Card # -->
+    <td>
+    <div class="cell-profile">
+        <div class="avatar blue">
+            {{ jc.customer.name|first|upper|default:"J" }}
+        </div>
+        <div class="info-stacked">
+        <div class="info-primary">{{ jc.job_card_number }}</div>
+        <div class="info-secondary">{{ jc.created_at|date:"M d, Y" }}</div>
+        </div>
+    </div>
+    </td>
+    <!-- Customer -->
+    <td>
+    <div class="info-stacked">
+        <div class="info-primary">{{ jc.customer.name }}</div>
+        <div class="info-secondary">{{ jc.customer.phone|phone_number|default:"-" }}</div>
+    </div>
+    </td>
+    <!-- Vehicle -->
+    <td>
+    <div class="info-stacked">
+        <div class="info-primary recent-plate">{{ jc.vehicle_number }}</div>
+        <div class="info-secondary">{{ jc.vehicle_model|default:"-" }}</div>
+    </div>
+    </td>
+    <!-- Odometer -->
+    <td class="td-mono">{{ jc.odometer_reading|currency_nonDecimal|default:"-" }} {% if jc.odometer_reading %}km{% endif %}</td>
+    <!-- Amount -->
+    <td class="info-primary">{{ jc.get_total_price|currency }}</td>
+    <!-- Status -->
+    <td>
+    {% if jc.status == 'pending' %}
+    <span class="badge badge-pending">Pending</span>
+    {% elif jc.status == 'in_progress' %}
+    <span class="badge badge-progress">In Progress</span>
+    {% elif jc.status == 'completed' %}
+    <span class="badge badge-done">Completed</span>
+    {% elif jc.status == 'cancelled' %}
+    <span class="badge badge-cancelled">Cancelled</span>
+    {% endif %}
+    </td>
+    <!-- Created -->
+    <td class="info-secondary">
+    {{ jc.created_at|date:"M d, Y" }}
+    </td>
+    <!-- Actions -->
+    <td>
+    <div class="action-buttons">
+        <a href="{% url 'jobcard:detail' jc.pk %}" class="action-btn view" title="View">
+        <i data-icon="eye"></i>
+        </a>
+        {% if perms.jobcard.change_jobcard %}
+        <a href="{% url 'jobcard:edit' jc.pk %}" class="action-btn edit" title="Edit">
+        <i data-icon="edit"></i>
+        </a>
+        {% endif %}
+        {% if perms.jobcard.delete_jobcard %}
+        <a href="{% url 'jobcard:delete' jc.pk %}" class="action-btn delete" title="Delete">
+        <i data-icon="trash"></i>
+        </a>
+        {% endif %}
+    </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="8" class="info-secondary text-center">No job cards found.</td>
+</tr>
+{% endfor %}

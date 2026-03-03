@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} - GarageFlow{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-sub">{{ item.name }}</p>
+  </div>
+  <div class="breadcrumb">
+    <a href="{% url 'inventory:list' %}">Inventory</a>
+    <i data-icon="chevronRight"></i>
+    <span>{{ item.part_number }}</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div class="page active" id="page-in-detail">
+
+    <div class="page-actions" style="margin-bottom: 15px; justify-content: flex-end;">
+      {% if perms.inventory.change_inventory %}
+      <a href="{% url 'inventory:edit' item.pk %}" class="btn btn-secondary" style="margin-right: 10px;">
+        <i data-icon="edit"></i> Edit Part
+      </a>
+      <button class="btn btn-primary" onclick="openStockInModal()">
+        <i data-icon="plus"></i> Stock In
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- 80/20 split -->
+    <div class="jc-detail-layout">
+      <!-- LEFT — Logs Table -->
+      <div class="jc-detail-main">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Inventory Logs</h3>
+              <p class="card-sub">{{ logs.count }} record{{ logs.count|pluralize }}</p>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                    <th>Reference</th>
+                    <th>User</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for log in logs %}
+                  <tr>
+                    <td class="info-secondary">{{ log.transaction_date|date:"M d, Y" }}</td>
+                    <td>
+                      <span class="badge badge-{% if log.quantity > 0 %}done{% else %}cancelled{% endif %}">
+                        {{ log.get_transaction_type_display }}
+                      </span>
+                    </td>
+                    <td class="td-mono {% if log.quantity > 0 %}text-success{% elif log.quantity < 0 %}text-danger{% endif %}">
+                      {% if log.quantity > 0 %}+{% endif %}{{ log.quantity }}
+                    </td>
+                    <td class="td-mono">{{ log.reference_number|default:"-" }}</td>
+                    <td>{{ log.created_by|default:"-" }}</td>
+                    <td class="info-secondary">{{ log.notes|default:"-" }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="6" class="info-secondary" style="text-align:center;padding:24px;">No inventory logs found for this part.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT — Details Sidebar -->
+      <div class="jc-detail-sidebar">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Part Details</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="jc-section">
+              <div class="jc-info-item">
+                <span class="jc-info-label">Part Number</span>
+                <span class="jc-info-val td-mono">{{ item.part_number }}</span>
+              </div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Barcode</span>
+                <span class="jc-info-val td-mono">{{ item.barcode|default:"-" }}</span>
+              </div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Category</span>
+                <span class="jc-info-val">{{ item.category.name|default:"-" }}</span>
+              </div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Current Stock</span>
+                <span class="jc-info-val td-mono" style="font-weight:600; font-size:16px;">
+                  {{ item.quantity|floatformat:2 }} {{ item.uom.name }}
+                </span>
+              </div>
+              <div class="divider"></div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Cost Price</span>
+                <span class="jc-info-val td-mono">{{ item.cost_price }}</span>
+              </div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Selling Price</span>
+                <span class="jc-info-val td-mono">{{ item.selling_price }}</span>
+              </div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Profit Margin</span>
+                <span class="jc-info-val {% if item.profit_margin > 0 %}text-success{% elif item.profit_margin < 0 %}text-danger{% endif %}">{{ item.profit_margin|floatformat:1 }}%</span>
+              </div>
+              <div class="divider"></div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Location</span>
+                <span class="jc-info-val td-mono">{{ item.shelf_location|default:"-" }}</span>
+              </div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Compatible</span>
+                <span class="jc-info-val">{{ item.get_compatible_vehicles_display|default:"-" }}</span>
+              </div>
+              <div class="jc-info-item">
+                <span class="jc-info-label">Added</span>
+                <span class="jc-info-val">{{ item.created_at|date:"M d, Y" }}</span>
+              </div>
+              {% if item.description %}
+              <div class="divider"></div>
+              <div class="jc-info-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                <span class="jc-info-label">Description</span>
+                <span class="jc-info-val" style="white-space: pre-wrap; font-size: 13px;">{{ item.description }}</span>
+              </div>
+              {% endif %}
+              {% if item.compatibility_notes %}
+              <div class="jc-info-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                <span class="jc-info-label">Compatibility Notes</span>
+                <span class="jc-info-val" style="white-space: pre-wrap; font-size: 13px;">{{ item.compatibility_notes }}</span>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Stock In Modal -->
+{% if perms.inventory.change_inventory %}
+<div id="stockInModal" class="modal-overlay">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border);">
+      <h2 class="modal-title" style="margin: 0; font-size: 16px;">Stock In: {{ item.name }}</h2>
+      <button class="modal-close" onclick="closeStockInModal()">
+        &times;
+      </button>
+    </div>
+    <form method="POST" action="{% url 'inventory:stock_in' item.pk %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        
+        <div class="form-group">
+          <label class="form-label" for="{{ stock_in_form.quantity.id_for_label }}">Quantity to Add</label>
+          {{ stock_in_form.quantity }}
+          {% if stock_in_form.quantity.errors %}
+          <div class="form-error">{{ stock_in_form.quantity.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="{{ stock_in_form.cost_price.id_for_label }}">New Cost Price</label>
+            {{ stock_in_form.cost_price }}
+            {% if stock_in_form.cost_price.errors %}
+            <div class="form-error">{{ stock_in_form.cost_price.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="{{ stock_in_form.selling_price.id_for_label }}">New Selling Price</label>
+            {{ stock_in_form.selling_price }}
+            {% if stock_in_form.selling_price.errors %}
+            <div class="form-error">{{ stock_in_form.selling_price.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="{{ stock_in_form.reference_number.id_for_label }}">Invoice / Reference #</label>
+          {{ stock_in_form.reference_number }}
+          {% if stock_in_form.reference_number.errors %}
+          <div class="form-error">{{ stock_in_form.reference_number.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="{{ stock_in_form.notes.id_for_label }}">Notes</label>
+          {{ stock_in_form.notes }}
+          {% if stock_in_form.notes.errors %}
+          <div class="form-error">{{ stock_in_form.notes.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeStockInModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Stock In</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openStockInModal() {
+    document.getElementById('stockInModal').classList.add('open');
+  }
+
+  function closeStockInModal() {
+    document.getElementById('stockInModal').classList.remove('open');
+  }
+
+  // Handle errors automatically opening the modal
+  document.addEventListener("DOMContentLoaded", () => {
+    const hasErrors = "{{ stock_in_form.errors|yesno:'true,false' }}";
+    if (hasErrors === "true") {
+      openStockInModal();
+    }
+  });
+</script>
+{% endblock %}

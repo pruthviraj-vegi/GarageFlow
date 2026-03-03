@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - GarageFlow{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-sub">Fill in invoice details below</p>
+  </div>
+  <div class="breadcrumb">
+    <a href="{% url 'invoice:list' %}">Invoices</a> <i data-icon="chevronRight"></i> <span>{{ title }}</span>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page active">
+    <div class="form-container">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">{{ title }}</div>
+            <div class="card-sub">Invoice Information</div>
+          </div>
+          <a href="{% url 'invoice:list' %}" class="btn btn-secondary btn-sm">Back to List</a>
+        </div>
+
+        <div class="card-body form-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            <!-- Customer & Job Card -->
+            <div class="form-section">
+              <div class="form-section-title">Customer & Job Card</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.customer.id_for_label }}">
+                    {{ form.customer.label }} <span>*</span>
+                  </label>
+                  {{ form.customer }}
+                  {% if form.customer.help_text or form.customer.errors %}
+                  <div class="form-feedback">
+                    {% if form.customer.errors %}
+                    <div class="form-error">{{ form.customer.errors }}</div>
+                    {% else %}
+                    <div class="form-hint">{{ form.customer.help_text }}</div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.job_card.id_for_label }}">
+                    {{ form.job_card.label }}
+                  </label>
+                  {{ form.job_card }}
+                  {% if form.job_card.help_text or form.job_card.errors %}
+                  <div class="form-feedback">
+                    {% if form.job_card.errors %}
+                    <div class="form-error">{{ form.job_card.errors }}</div>
+                    {% else %}
+                    <div class="form-hint">{{ form.job_card.help_text }}</div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Billing Details -->
+            <div class="form-section">
+              <div class="form-section-title">Billing Details</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.total_amount.id_for_label }}">
+                    {{ form.total_amount.label }} <span>*</span>
+                  </label>
+                  {{ form.total_amount }}
+                  {% if form.total_amount.help_text or form.total_amount.errors %}
+                  <div class="form-feedback">
+                    {% if form.total_amount.errors %}
+                    <div class="form-error">{{ form.total_amount.errors }}</div>
+                    {% else %}
+                    <div class="form-hint">{{ form.total_amount.help_text }}</div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="form-section">
+              <div class="form-section-title">Additional Notes</div>
+              <div class="form-grid">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label" for="{{ form.notes.id_for_label }}">
+                    {{ form.notes.label }}
+                  </label>
+                  {{ form.notes }}
+                  {% if form.notes.help_text or form.notes.errors %}
+                  <div class="form-feedback">
+                    {% if form.notes.errors %}
+                    <div class="form-error">{{ form.notes.errors }}</div>
+                    {% else %}
+                    <div class="form-hint">{{ form.notes.help_text }}</div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="divider form-divider"></div>
+
+            <div class="form-actions">
+              <a href="{% url 'invoice:list' %}" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary">Save Invoice</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

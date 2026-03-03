@@ -1,0 +1,600 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - GarageFlow{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-sub">Fill in job card details below</p>
+  </div>
+  <div class="breadcrumb">
+    <a href="{% url 'jobcard:list' %}">Job Cards</a> <i data-icon="chevronRight"></i> <span>{{ title }}</span>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page active">
+    <div class="jc-form-layout">
+
+      <!-- ── MAIN FORM (70%) ── -->
+      <div class="jc-form-main">
+        <div class="form-container">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">{{ title }}</div>
+                <div class="card-sub">Job Card Information</div>
+              </div>
+              <a href="{% url 'jobcard:list' %}" class="btn btn-secondary btn-sm">Back to List</a>
+            </div>
+
+            <div class="card-body form-body">
+              <form method="post" novalidate>
+                {% csrf_token %}
+
+                <!-- Customer & Vehicle -->
+                <div class="form-section">
+                  <div class="form-section-title">Customer & Vehicle</div>
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label class="form-label" for="{{ form.vehicle_number.id_for_label }}">
+                        {{ form.vehicle_number.label }} <span>*</span>
+                      </label>
+                      {{ form.vehicle_number }}
+                      {% if form.vehicle_number.help_text or form.vehicle_number.errors %}
+                      <div class="form-feedback">
+                        {% if form.vehicle_number.errors %}
+                        <div class="form-error">{{ form.vehicle_number.errors }}</div>
+                        {% else %}
+                        <div class="form-hint">{{ form.vehicle_number.help_text }}</div>
+                        {% endif %}
+                      </div>
+                      {% endif %}
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="{{ form.vehicle_model.id_for_label }}" style="display:flex;align-items:center;gap:8px;">
+                        <span>{{ form.vehicle_model.label }}</span>
+                        {% if perms.vehicle.add_vehiclemodel %}
+                        <a href="#" id="open-new-vehicle-modal" style="font-size:12px;font-weight:500;color:var(--accent);text-decoration:none;margin-left:auto;display:inline-flex;align-items:center;gap:3px;">
+                          <i data-icon="plus" style="width:12px;height:12px;"></i> New Model
+                        </a>
+                        {% endif %}
+                      </label>
+                      {{ form.vehicle_model }}
+                      {% if form.vehicle_model.help_text or form.vehicle_model.errors %}
+                      <div class="form-feedback">
+                        {% if form.vehicle_model.errors %}
+                        <div class="form-error">{{ form.vehicle_model.errors }}</div>
+                        {% else %}
+                        <div class="form-hint">{{ form.vehicle_model.help_text }}</div>
+                        {% endif %}
+                      </div>
+                      {% endif %}
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="{{ form.customer.id_for_label }}" style="display:flex;align-items:center;gap:8px;">
+                        <span>{{ form.customer.label }} <span>*</span></span>
+                        {% if perms.customer.add_customer %}
+                        <a href="#" id="open-new-customer-modal" style="font-size:12px;font-weight:500;color:var(--accent);text-decoration:none;margin-left:auto;display:inline-flex;align-items:center;gap:3px;">
+                          <i data-icon="plus" style="width:12px;height:12px;"></i> New Customer
+                        </a>
+                        {% endif %}
+                      </label>
+                      {{ form.customer }}
+                      {% if form.customer.help_text or form.customer.errors %}
+                      <div class="form-feedback">
+                        {% if form.customer.errors %}
+                        <div class="form-error">{{ form.customer.errors }}</div>
+                        {% else %}
+                        <div class="form-hint">{{ form.customer.help_text }}</div>
+                        {% endif %}
+                      </div>
+                      {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                      <label class="form-label" for="{{ form.odometer_reading.id_for_label }}">
+                        {{ form.odometer_reading.label }}
+                      </label>
+                      {{ form.odometer_reading }}
+                      {% if form.odometer_reading.help_text or form.odometer_reading.errors %}
+                      <div class="form-feedback">
+                        {% if form.odometer_reading.errors %}
+                        <div class="form-error">{{ form.odometer_reading.errors }}</div>
+                        {% else %}
+                        <div class="form-hint">{{ form.odometer_reading.help_text }}</div>
+                        {% endif %}
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Job Status (edit only) -->
+                {% if is_edit %}
+                <div class="form-section">
+                  <div class="form-section-title">Job Status</div>
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label class="form-label" for="{{ form.status.id_for_label }}">
+                        {{ form.status.label }}
+                      </label>
+                      {{ form.status }}
+                      {% if form.status.help_text or form.status.errors %}
+                      <div class="form-feedback">
+                        {% if form.status.errors %}
+                        <div class="form-error">{{ form.status.errors }}</div>
+                        {% else %}
+                        <div class="form-hint">{{ form.status.help_text }}</div>
+                        {% endif %}
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+
+                <div class="divider form-divider"></div>
+
+                <div class="form-actions">
+                  <a href="{% url 'jobcard:list' %}" class="btn btn-secondary">Cancel</a>
+                  <button type="submit" class="btn btn-primary">Save Job Card</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VEHICLE SEARCH PANEL (30%) ── -->
+      <div class="jc-search-panel">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Vehicle Lookup</div>
+              <div class="card-sub">Search by vehicle number</div>
+            </div>
+          </div>
+          <div class="card-body" style="padding: 12px;">
+            <div class="jc-search-input-wrap">
+              <i data-icon="search"></i>
+              <input type="text" id="jc-vehicle-search" class="jc-search-input"
+                     placeholder="Type vehicle number…" autocomplete="off">
+            </div>
+          </div>
+          <div id="jc-search-results" class="jc-search-results">
+            <div class="jc-search-empty">
+              <i data-icon="vehicles"></i>
+              <span>Enter a vehicle number to search existing records</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NEW CUSTOMER MODAL ═══ -->
+{% if perms.customer.add_customer %}
+<div class="modal-overlay" id="newCustomerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-header-title">New Customer</div>
+        <div class="modal-header-sub">Add a new customer to the system</div>
+      </div>
+      <button type="button" class="modal-close" onclick="closeModal('newCustomerModal')">
+        <i data-icon="close"></i>
+      </button>
+    </div>
+<form id="newCustomerForm">
+      <div class="modal-body">
+        <div id="modal-customer-alert"></div>
+        <div class="form-section">
+          <div class="form-grid">
+            {% for field in customer_form %}
+            <div class="form-group">
+              <label class="form-label" for="{{ field.id_for_label }}">
+                {{ field.label }} {% if field.field.required %}<span>*</span>{% endif %}
+              </label>
+              {{ field }}
+              <div class="form-error" id="{{ field.html_name }}_error"></div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('newCustomerModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" id="modal-customer-save">Save Customer</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══ NEW VEHICLE MODEL MODAL ═══ -->
+{% if perms.vehicle.add_vehiclemodel %}
+<div class="modal-overlay" id="newVehicleModelModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-header-title">New Vehicle Model</div>
+        <div class="modal-header-sub">Add a new vehicle model to the system</div>
+      </div>
+      <button type="button" class="modal-close" onclick="closeModal('newVehicleModelModal')">
+        <i data-icon="close"></i>
+      </button>
+    </div>
+    <form id="newVehicleForm">
+      <div class="modal-body">
+        <div id="modal-vehicle-alert"></div>
+        <div class="form-section">
+          <div class="form-grid">
+            {% for field in vehicle_form %}
+            <div class="form-group">
+              <label class="form-label" for="{{ field.id_for_label }}">
+                {{ field.label }} {% if field.field.required %}<span>*</span>{% endif %}
+              </label>
+              {{ field }}
+              <div class="form-error" id="{{ field.html_name }}_error"></div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('newVehicleModelModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" id="modal-vehicle-save">Save Model</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const panelInput = document.getElementById('jc-vehicle-search');
+  const formInput  = document.getElementById('id_vehicle_number');
+  const resultsBox = document.getElementById('jc-search-results');
+  if (!resultsBox) return;
+
+  let debounceTimer = null;
+
+  function doSearch(q) {
+    clearTimeout(debounceTimer);
+    q = q.trim();
+
+    if (q.length < 2) {
+      resultsBox.innerHTML =
+        '<div class="jc-search-empty">' +
+          '<i data-icon="vehicles"></i>' +
+          '<span>Enter a vehicle number to search existing records</span>' +
+        '</div>';
+      renderIcons();
+      return;
+    }
+
+    resultsBox.innerHTML = '<div class="jc-search-loading">Searching…</div>';
+
+    debounceTimer = setTimeout(function() {
+      fetch('{% url "jobcard:api_vehicle_search" %}?q=' + encodeURIComponent(q))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.results || data.results.length === 0) {
+            resultsBox.innerHTML =
+              '<div class="jc-search-empty">' +
+                '<i data-icon="search"></i>' +
+                '<span>No vehicles found for "' + q + '"</span>' +
+              '</div>';
+            renderIcons();
+            return;
+          }
+
+          var html = '';
+          data.results.forEach(function(r) {
+            html +=
+              '<div class="jc-search-item" ' +
+                   'data-customer="' + r.customer_id + '" ' +
+                   'data-vehicle-model="' + (r.vehicle_model_id || '') + '" ' +
+                   'data-vehicle-number="' + r.vehicle_number + '">' +
+                '<div class="jc-search-item-plate">' + r.vehicle_number + '</div>' +
+                '<div class="jc-search-item-info">' +
+                  '<span><span class="jc-search-item-label">Customer</span> ' + r.customer_name + '</span>' +
+                  (r.vehicle_model_name
+                    ? '<span><span class="jc-search-item-label">Model</span> ' + r.vehicle_model_name + '</span>'
+                    : '') +
+                '</div>' +
+              '</div>';
+          });
+
+          resultsBox.innerHTML = html;
+
+          // Attach click handlers
+          resultsBox.querySelectorAll('.jc-search-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+              var custId  = this.dataset.customer;
+              var modelId = this.dataset.vehicleModel;
+              var vehNum  = this.dataset.vehicleNumber;
+
+              // Set form fields
+              var custSelect  = document.getElementById('id_customer');
+              var modelSelect = document.getElementById('id_vehicle_model');
+
+              if (custSelect)  custSelect.value  = custId;
+              if (modelSelect) modelSelect.value  = modelId || '';
+              if (formInput)   formInput.value    = vehNum;
+              if (panelInput)  panelInput.value   = vehNum;
+
+              // Visual feedback
+              this.style.background = 'var(--accent-dim)';
+              var self = this;
+              setTimeout(function() { self.style.background = ''; }, 400);
+
+              // Focus odometer field
+              var odometerInput = document.getElementById('id_odometer_reading');
+              if (odometerInput) odometerInput.focus();
+
+              if (typeof showToast === 'function') {
+                showToast('Vehicle details filled — ' + vehNum);
+              }
+            });
+          });
+        })
+        .catch(function() {
+          resultsBox.innerHTML =
+            '<div class="jc-search-empty">' +
+              '<span>Search failed. Please try again.</span>' +
+            '</div>';
+        });
+    }, 300);
+  }
+
+  // Panel search input
+  if (panelInput) {
+    panelInput.addEventListener('input', function() {
+      if (formInput) formInput.value = this.value;
+      doSearch(this.value);
+    });
+  }
+
+  // Main form vehicle number input
+  if (formInput) {
+    formInput.addEventListener('input', function() {
+      if (panelInput) panelInput.value = this.value;
+      doSearch(this.value);
+    });
+  }
+})();
+
+/* ── New Customer Modal ── */
+(function() {
+  var openBtn  = document.getElementById('open-new-customer-modal');
+  var saveBtn  = document.getElementById('modal-customer-save');
+  var alertBox = document.getElementById('modal-customer-alert');
+  var overlay  = document.getElementById('newCustomerModal');
+  var formEl   = document.getElementById('newCustomerForm');
+  if (!openBtn || !saveBtn || !formEl) return;
+
+  function resetModal() {
+    formEl.reset();
+    var errors = formEl.querySelectorAll('.form-error');
+    errors.forEach(function(e) { e.textContent = ''; e.style.display = 'none'; });
+    if (alertBox) alertBox.innerHTML = '';
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Customer';
+  }
+
+  // Open modal
+  openBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    resetModal();
+    openModal('newCustomerModal');
+    renderIcons();
+    setTimeout(function() {
+      var nameInput = document.getElementById('id_modal-cust-name');
+      if (nameInput) nameInput.focus();
+    }, 200);
+  });
+
+  // Close on backdrop click
+  if (overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) closeModal('newCustomerModal');
+    });
+  }
+
+  // Save customer via AJAX
+  saveBtn.addEventListener('click', function() {
+    // Clear previous errors
+    var errors = formEl.querySelectorAll('.form-error');
+    errors.forEach(function(e) { e.textContent = ''; e.style.display = 'none'; });
+    if (alertBox) alertBox.innerHTML = '';
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    // Get CSRF token
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    // Automatically picks up all 'modal-cust-*' fields because of the prefix
+    var formData = new FormData(formEl);
+
+    /* The backend expects non-prefixed fields for the CustomerForm to bind correctly 
+       if we used un-prefixed, but since we used prefix="modal-cust", the backend 
+       expects "modal-cust-name" etc., which is exactly what the inputs are named! 
+       HOWEVER: the view in customer/views.py instantiates CustomerForm(request.POST) 
+       WITHOUT the prefix! Let's modify the keys before sending. */
+    var cleanFormData = new FormData();
+    for (var pair of formData.entries()) {
+      var key = pair[0];
+      if (key.startsWith('modal-cust-')) {
+        cleanFormData.append(key.replace('modal-cust-', ''), pair[1]);
+      } else {
+        cleanFormData.append(key, pair[1]);
+      }
+    }
+
+    fetch('{% url "customer:api_create" %}', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrfToken },
+      body: cleanFormData
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (res.data.success) {
+        var custSelect = document.getElementById('id_customer');
+        if (custSelect) {
+          var opt = document.createElement('option');
+          opt.value = res.data.customer.id;
+          opt.textContent = res.data.customer.display;
+          opt.selected = true;
+          custSelect.appendChild(opt);
+        }
+        closeModal('newCustomerModal');
+        if (typeof showToast === 'function') {
+          showToast('Customer "' + res.data.customer.name + '" created');
+        }
+      } else {
+        var errorKeys = Object.keys(res.data.errors || {});
+        errorKeys.forEach(function(key) {
+          // The form rendered as modal-cust-<key>, so the error container is modal-cust-<key>_error
+          var err = document.getElementById('modal-cust-' + key + '_error');
+          if (err) {
+            err.textContent = res.data.errors[key];
+            err.style.display = 'block';
+          }
+        });
+        if (errorKeys.length > 0) {
+          var firstField = document.getElementById('id_modal-cust-' + errorKeys[0]);
+          if (firstField) firstField.focus();
+        }
+      }
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Customer';
+    })
+    .catch(function(e) {
+      if (alertBox) {
+        alertBox.innerHTML = '<div class="modal-alert error">Something went wrong. Please try again.</div>';
+      }
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Customer';
+      console.error(e);
+    });
+  });
+})();
+
+/* ── New Vehicle Model Modal ── */
+(function() {
+  var openBtn  = document.getElementById('open-new-vehicle-modal');
+  var saveBtn  = document.getElementById('modal-vehicle-save');
+  var alertBox = document.getElementById('modal-vehicle-alert');
+  var overlay  = document.getElementById('newVehicleModelModal');
+  var formEl   = document.getElementById('newVehicleForm');
+  if (!openBtn || !saveBtn || !formEl) return;
+
+  function resetModal() {
+    formEl.reset();
+    var errors = formEl.querySelectorAll('.form-error');
+    errors.forEach(function(e) { e.textContent = ''; e.style.display = 'none'; });
+    if (alertBox) alertBox.innerHTML = '';
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Model';
+  }
+
+  // Open modal
+  openBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    resetModal();
+    openModal('newVehicleModelModal');
+    renderIcons();
+    setTimeout(function() {
+      var makeSelect = document.getElementById('id_modal-veh-make');
+      if (makeSelect) makeSelect.focus();
+    }, 200);
+  });
+
+  // Close on backdrop click
+  if (overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) closeModal('newVehicleModelModal');
+    });
+  }
+
+  // Save via AJAX
+  saveBtn.addEventListener('click', function() {
+    var errors = formEl.querySelectorAll('.form-error');
+    errors.forEach(function(e) { e.textContent = ''; e.style.display = 'none'; });
+    if (alertBox) alertBox.innerHTML = '';
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    var formData = new FormData(formEl);
+
+    var cleanFormData = new FormData();
+    for (var pair of formData.entries()) {
+      var key = pair[0];
+      if (key.startsWith('modal-veh-')) {
+        cleanFormData.append(key.replace('modal-veh-', ''), pair[1]);
+      } else {
+        cleanFormData.append(key, pair[1]);
+      }
+    }
+
+    fetch('{% url "vehicle:api_create_model" %}', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrfToken },
+      body: cleanFormData
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (res.data.success) {
+        var modelSelect = document.getElementById('id_vehicle_model');
+        if (modelSelect) {
+          var opt = document.createElement('option');
+          opt.value = res.data.vehicle.id;
+          opt.textContent = res.data.vehicle.display;
+          opt.selected = true;
+          modelSelect.appendChild(opt);
+        }
+        closeModal('newVehicleModelModal');
+        if (typeof showToast === 'function') {
+          showToast('Vehicle model "' + res.data.vehicle.display + '" created');
+        }
+      } else {
+        var errorKeys = Object.keys(res.data.errors || {});
+        errorKeys.forEach(function(key) {
+          var err = document.getElementById('modal-veh-' + key + '_error');
+          if (err) {
+            err.textContent = res.data.errors[key];
+            err.style.display = 'block';
+          }
+        });
+        if (errorKeys.length > 0) {
+          var firstField = document.getElementById('id_modal-veh-' + errorKeys[0]);
+          if (firstField) firstField.focus();
+        }
+      }
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Model';
+    })
+    .catch(function(e) {
+      if (alertBox) {
+        alertBox.innerHTML = '<div class="modal-alert error">Something went wrong. Please try again.</div>';
+      }
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Model';
+      console.error(e);
+    });
+  });
+})();
+</script>
+{% endblock %}

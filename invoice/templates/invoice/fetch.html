@@ -1,0 +1,61 @@
+{% load static %}
+{% load custom_filters %}
+
+{% for inv in page_obj %}
+<tr>
+    <!-- Invoice # -->
+    <td>
+    <div class="cell-profile">
+        <div class="avatar blue">
+        {{ inv.customer.name|first|upper }}
+        </div>
+        <div class="info-stacked">
+        <div class="info-primary">
+            <a href="{% url 'invoice:detail' inv.pk %}" style="text-decoration: none; color: inherit;">
+            {{ inv.invoice_number }}
+            </a>
+        </div>
+        <div class="info-secondary">{{ inv.created_at|date:"M d, Y" }}</div>
+        </div>
+    </div>
+    </td>
+    <!-- Customer -->
+    <td>
+    <div class="info-stacked">
+        <div class="info-primary">{{ inv.customer.name }}</div>
+        <div class="info-secondary">{{ inv.customer.phone|phone_number|default:"-" }}</div>
+    </div>
+    </td>
+    <!-- Job Card -->
+    <td>
+    {% if inv.job_card %}
+    <span class="info-primary">{{ inv.job_card.job_card_number }}</span>
+    {% else %}
+    <span class="info-secondary">Counter Sale</span>
+    {% endif %}
+    </td>
+    <!-- Total Amount -->
+    <td class="td-mono">{{ inv.total_amount|currency }}</td>
+    <!-- Created -->
+    <td class="info-secondary">
+    {{ inv.created_at|date:"M d, Y" }}
+    </td>
+    <!-- Actions -->
+    <td>
+    <div class="action-buttons">
+        <a href="{% url 'invoice:detail' inv.pk %}" class="action-btn" title="View Details">
+        <i data-icon="eye"></i>
+        </a>
+        {% if perms.invoice.delete_invoice %}
+        <a href="{% url 'invoice:delete' inv.pk %}" class="action-btn delete" title="Delete">
+        <i data-icon="trash"></i>
+        </a>
+        {% endif %}
+    </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="6" class="info-secondary text-center">No invoices found.</td>
+</tr>
+{% endfor %}

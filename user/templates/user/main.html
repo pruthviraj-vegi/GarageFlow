@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Users - GarageFlow{% endblock %}
+
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Users</h1>
+    <p class="page-sub">Manage system access and roles</p>
+  </div>
+  <div class="breadcrumb">
+    Dashboard <i data-icon="chevronRight"></i> <span>Users</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+  <!-- ══ USERS ══ -->
+  <div class="page active" id="page-users">
+    <form class="page-actions">
+      <div class="filters-row">
+        <div class="search-box" style="width:500px">
+          <i data-icon="search"></i>
+          <input type="text" placeholder="Search users…" autofocus/>
+        </div>
+        <select class="filter-select">
+          <option>All Roles</option>
+          <option>Admin</option>
+          <option>Mechanic</option>
+          <option>Receptionist</option>
+        </select>
+        <button class="btn btn-primary">
+          <i data-icon="search"></i>
+          Search
+        </button>
+      </div>
+      {% if perms.user.add_customuser %}
+      <a href="{% url 'user:add' %}" class="btn btn-primary">
+        <i data-icon="plus"></i>
+        Add User
+      </a>
+      {% endif %}
+    </form>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">System Users</div>
+        <span class="info-secondary">{{ users.count }} users registered</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Last Login</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+            <tr>
+              <!-- User -->
+              <td>
+                <div class="cell-profile">
+                  <div class="avatar {% if not u.is_superuser %}blue{% endif %}">
+                    {{ u.get_full_name|first|upper }}
+                  </div>
+                  <div class="info-stacked">
+                    <div class="info-primary">{{ u.get_full_name }}</div>
+                    <div class="info-secondary">@{{ u.employee_id }}</div>
+                  </div>
+                </div>
+              </td>
+              <!-- Phone -->
+              <td class="td-mono">{{ u.phone|default:"-" }}</td>
+              <!-- Email -->
+              <td class="info-secondary">{{ u.email|default:"-" }}</td>
+              <!-- Role -->
+              <td>
+                {% if u.role == 'admin' or u.is_superuser %}
+                  <span class="badge badge-admin">Admin</span>
+                {% elif u.role == 'mechanic' %}
+                  <span class="badge badge-mechanic">Mechanic</span>
+                {% elif u.role == 'receptionist' %}
+                  <span class="badge badge-receptionist">Receptionist</span>
+                {% else %}
+                  <span class="badge badge-inactive">Staff</span>
+                {% endif %}
+              </td>
+              <!-- Status -->
+              <td>
+                {% if u.is_active %}
+                  <span class="badge badge-active">Active</span>
+                {% else %}
+                  <span class="badge badge-inactive">Inactive</span>
+                {% endif %}
+              </td>
+              <!-- Last Login -->
+              <td class="info-secondary">
+                {% if u.last_login %}
+                  {{ u.last_login|date:"M d, g:i A" }}
+                {% else %}
+                  Never
+                {% endif %}
+              </td>
+              <!-- Actions -->
+              <td>
+                <div class="action-buttons">
+                  {% if perms.user.change_customuser %}
+                  <a href="{% url 'user:edit' u.pk %}" class="action-btn edit" title="Edit">
+                    <i data-icon="edit"></i>
+                  </a>
+                  {% endif %}
+                  {% if perms.user.delete_customuser and u != request.user %}
+                  <a href="{% url 'user:delete' u.pk %}" class="action-btn delete" title="Delete">
+                    <i data-icon="trash"></i>
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="info-secondary">No users found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

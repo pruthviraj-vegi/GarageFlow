@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Vehicle Models - GarageFlow{% endblock %}
+
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Vehicle Models</h1>
+    <p class="page-sub">Manage vehicle models and variants</p>
+  </div>
+  <div class="breadcrumb">
+    Dashboard <i data-icon="chevronRight"></i> <span>Vehicle Models</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div class="page active" id="page-vehicles">
+    <form class="page-actions" id="vehicle-search-form" onsubmit="return false;">
+      <div class="filters-row">
+        <div class="search-box" style="width:500px">
+          <i data-icon="search"></i>
+          <input type="text" name="q" value="{{ search_query }}" placeholder="Search vehicle models…" autofocus autocomplete="off"/>
+        </div>
+        <button type="submit" class="btn btn-primary" onclick="reloadTable('vehicle-table')">
+          <i data-icon="search"></i>
+          Search
+        </button>
+      </div>
+      <div class="filters-row">
+        {% if perms.vehicle.add_vehiclemake %}
+        <a href="{% url 'vehicle:make-list' %}" class="btn btn-secondary">
+          <i data-icon="settings"></i>
+          Manage Makes
+        </a>
+        {% endif %}
+        {% if perms.vehicle.add_vehiclemodel %}
+        <a href="{% url 'vehicle:add' %}" class="btn btn-primary">
+          <i data-icon="plus"></i>
+          Add Vehicle Model
+        </a>
+        {% endif %}
+      </div>
+    </form>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Vehicle Models</div>
+        <span class="info-secondary">{{ vehicles_count }} models registered</span>
+      </div>
+      <div class="table-wrap">
+        <table id="vehicle-table">
+          <thead>
+            <tr>
+              <th data-sort="make__name">Vehicle</th>
+              <th data-sort="fuel_type">Fuel Type</th>
+              <th data-sort="transmission">Transmission</th>
+              <th data-sort="created_at">Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="vehicle-table-body">
+            <!-- Data loaded via AJAX -->
+            <tr>
+                <td colspan="5" class="text-center loading-cell">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination Container -->
+    <div id="vehicle-table_pagination"></div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        initTableAjax(
+            'vehicle-search-form', 
+            'vehicle-table', 
+            '{% url "vehicle:fetch" %}', 
+            {
+                method: 'GET',
+                debounceDelay: 400,
+                placeholder: 'Loading vehicle models...'
+            },
+            true // includeInputs = true to listen to input events
+        );
+        initTableSorting('vehicle-table');
+    });
+</script>
+{% endblock extra_js %}

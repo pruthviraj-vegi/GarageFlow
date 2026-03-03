@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Dashboard{% endblock %} — GarageFlow</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <!-- Favicon -->
+  <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+
+  {% block extra_css %}{% endblock %}
+
+  <!-- Theme: apply saved preference before paint -->
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+  <div class="app">
+
+    <!-- ============================================
+        1. HEADER BAR (topbar)
+    ============================================ -->
+    <header class="topbar">
+      <!-- Brand -->
+      <div class="topbar-brand">
+        <div class="brand-logo">
+          <i data-icon="logo"></i>
+        </div>
+        <div>
+          <div class="brand-name">GarageOS</div>
+          <div class="brand-tag">Workshop Suite</div>
+        </div>
+      </div>
+
+      <!-- Right side actions -->
+      <div class="topbar-right">
+        <div class="search-box">
+          <i data-icon="search"></i>
+          <input type="text" placeholder="Search anything…"/>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+          <i id="themeIcon" data-icon="theme"></i>
+        </button>
+        <button class="icon-btn">
+          <i data-icon="bell"></i>
+        </button>
+        {% if user.is_authenticated %}
+        <div class="user-chip">
+          <div class="user-avatar">{{ user.get_short_name|slice:":2"|upper }}</div>
+          <div class="user-info">
+            <div class="user-name">{{ user.get_short_name }}</div>
+            <div class="user-role">Administrator</div>
+          </div>
+        </div>
+        <a href="{% url 'base:logout' %}" class="icon-btn" title="Logout">
+          <i data-icon="logout"></i>
+        </a>
+        {% endif %}
+      </div>
+    </header>
+
+    {% include 'navbar.html' %}
+
+    <div class="main">
+      {% block content %}{% endblock %}
+    </div>
+
+  </div>
+
+  <!-- ============================================
+       SCRIPTS
+       ============================================ -->
+  <script src="{% static 'js/icons.js' %}"></script>
+  <script src="{% static 'js/main.js' %}" async></script>
+  <script src="{% static 'js/fetchData.js' %}"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var el = document.querySelector("[autofocus]");
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) {
+        if (el.type !== "number" && el.type !== "email") {
+          try {
+            var len = el.value.length;
+            el.setSelectionRange(len, len);
+          } catch(e) {}
+        }
+      }
+    });
+  </script>
+
+  <!-- Django Messages Bridge -->
+  {% if messages %}
+    {% for message in messages %}
+    <script>showNotification("{{ message|escapejs }}", "{{ message.tags }}");</script>
+    {% endfor %}
+  {% endif %}
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,46 @@
+{% load static %}
+{% load custom_filters %}
+
+{% for c in page_obj %}
+<tr>
+    <!-- Customer -->
+    <td>
+    <div class="cell-profile">
+        <div class="avatar blue">
+        {{ c.name|first|upper }}
+        </div>
+        <div class="info-stacked">
+        <div class="info-primary">{{ c.name }}</div>
+        <div class="info-secondary">@{{ c.customer_id }}</div>
+        </div>
+    </div>
+    </td>
+    <!-- Phone -->
+    <td class="td-mono">{{ c.phone|phone_number|default:"-" }}</td>
+    <!-- Address -->
+    <td class="info-secondary">{{ c.address|default:"-" }}</td>
+    <!-- Created -->
+    <td class="info-secondary">
+    {{ c.created_at|date:"M d, Y" }}
+    </td>
+    <!-- Actions -->
+    <td>
+    <div class="action-buttons">
+        {% if perms.customer.change_customer %}
+        <a href="{% url 'customer:edit' c.pk %}" class="action-btn edit" title="Edit">
+        <i data-icon="edit"></i>
+        </a>
+        {% endif %}
+        {% if perms.customer.delete_customer %}
+        <a href="{% url 'customer:delete' c.pk %}" class="action-btn delete" title="Delete">
+        <i data-icon="trash"></i>
+        </a>
+        {% endif %}
+    </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="5" class="info-secondary text-center">No customers found.</td>
+</tr>
+{% endfor %}

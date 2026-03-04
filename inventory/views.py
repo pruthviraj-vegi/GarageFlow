@@ -42,13 +42,20 @@ def get_data(request):
 
     queryset = Inventory.objects.all().select_related("category", "uom")
     if search_query:
-        queryset = queryset.filter(
-            Q(name__icontains=search_query)
-            | Q(part_number__icontains=search_query)
-            | Q(barcode__icontains=search_query)
-            | Q(brand__icontains=search_query)
-            | Q(category__name__icontains=search_query)
-        )
+        # Split query into words so "swift oil filter" matches items where
+        # each word is found in at least one searchable field.
+        terms = search_query.split()
+        for term in terms:
+            queryset = queryset.filter(
+                Q(name__icontains=term)
+                | Q(part_number__icontains=term)
+                | Q(barcode__icontains=term)
+                | Q(brand__icontains=term)
+                | Q(category__name__icontains=term)
+                | Q(compatible_vehicles__model_name__icontains=term)
+                | Q(compatible_vehicles__make__name__icontains=term)
+            )
+        queryset = queryset.distinct()
 
     valid_sorts = table_sorting(
         request,

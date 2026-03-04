@@ -132,7 +132,12 @@
               </div>
               <div class="jc-info-item">
                 <span class="jc-info-label">Compatible</span>
-                <span class="jc-info-val">{{ item.get_compatible_vehicles_display|default:"-" }}</span>
+
+                <span class="jc-info-val">
+                  {% for vehicle in item.compatible_vehicles.all %}
+                    <div>{{ vehicle }}</div>
+                  {% endfor %}
+                </span>
               </div>
               <div class="jc-info-item">
                 <span class="jc-info-label">Added</span>

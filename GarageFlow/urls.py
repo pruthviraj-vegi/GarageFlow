@@ -27,4 +27,5 @@ urlpatterns = [
     path("inventory/", include("inventory.urls")),
     path("jobcards/", include("jobcard.urls")),
     path("invoices/", include("invoice.urls")),
+    path("suggestions/", include("base.suggestion_url")),
 ]

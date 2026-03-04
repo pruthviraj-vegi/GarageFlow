@@ -85,7 +85,7 @@
       <div class="filters-row">
         <div class="search-box" style="width:500px">
           <i data-icon="search"></i>
-          <input type="text" name="q" value="{{ search_query }}" placeholder="Search inventory…" autofocus autocomplete="off"/>
+          <input type="search" name="q" value="{{ search_query }}" placeholder="Search inventory…" autofocus autocomplete="off"/>
         </div>
         <button type="submit" class="btn btn-primary" onclick="reloadTable('inventory-table')">
           <i data-icon="search"></i>
@@ -167,10 +167,22 @@
                 method: 'GET',
                 debounceDelay: 400,
                 placeholder: 'Loading inventory...'
-            },
-            true // includeInputs = true to listen to input events
+            }
+            // includeInputs removed — suggestion handles input, then triggers table reload
         );
         initTableSorting('inventory-table');
+
+        // Wire up suggestion autocomplete
+        const searchInput = document.querySelector('#inventory-search-form .search-box input[name="q"]');
+        if (searchInput) {
+            initSuggestion(searchInput, '{% url "suggestions:inventory_all" %}', {
+                minChars: 3,
+                debounceMs: 300,
+                onSelect: function() {
+                    reloadTable('inventory-table');
+                },
+            });
+        }
     });
 </script>
 {% endblock extra_js %}

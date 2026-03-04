@@ -22,7 +22,7 @@
       <div class="filters-row">
         <div class="search-box" style="width:500px">
           <i data-icon="search"></i>
-          <input type="text" name="q" value="{{ search_query }}" placeholder="Search vehicle models…" autofocus autocomplete="off"/>
+          <input type="search" name="q" value="{{ search_query }}" placeholder="Search vehicle models…" autofocus autocomplete="off"/>
         </div>
         <button type="submit" class="btn btn-primary" onclick="reloadTable('vehicle-table')">
           <i data-icon="search"></i>
@@ -94,9 +94,19 @@
                 debounceDelay: 400,
                 placeholder: 'Loading vehicle models...'
             },
-            true // includeInputs = true to listen to input events
         );
         initTableSorting('vehicle-table');
     });
+
+    const searchInput = document.querySelector('#vehicle-search-form .search-box input[name="q"]');
+    if (searchInput) {
+        initSuggestion(searchInput, '{% url "suggestions:vehicle_all" %}', {
+            minChars: 3,
+            debounceMs: 300,
+            onSelect: function() {
+                reloadTable('vehicle-table');
+            },
+        });
+    }
 </script>
 {% endblock extra_js %}

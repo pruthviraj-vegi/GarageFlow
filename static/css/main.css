@@ -485,6 +485,50 @@ ul {
   color: var(--text3);
 }
 
+/* ── Suggestion Dropdown ── */
+.suggestion-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--sh-md);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 900;
+  display: none;
+  padding: 4px;
+}
+.suggestion-dropdown.open {
+  display: block;
+  animation: fadeIn 0.15s ease;
+}
+.suggestion-item {
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--text2);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition:
+    background var(--t),
+    color var(--t);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.suggestion-item:hover,
+.suggestion-item.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+.suggestion-item mark {
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .icon-btn {
   width: 32px;
   height: 32px;

@@ -25,7 +25,7 @@
       <div class="filters-row">
         <div class="search-box" style="width:500px">
           <i data-icon="search"></i>
-          <input type="text" name="q" value="{{ search_query }}" placeholder="Search customers…" autofocus autocomplete="off"/>
+          <input type="search" name="q" value="{{ search_query }}" placeholder="Search customers…" autofocus autocomplete="off"/>
         </div>
         <button type="submit" class="btn btn-primary" onclick="reloadTable('customer-table')">
           <i data-icon="search"></i>
@@ -88,10 +88,20 @@
                 method: 'GET',
                 debounceDelay: 400,
                 placeholder: 'Loading customers...'
-            },
-            true // includeInputs = true to listen to input events
+            }
         );
         initTableSorting('customer-table');
+        // Wire up suggestion autocomplete
+        const searchInput = document.querySelector('#customer-search-form .search-box input[name="q"]');
+        if (searchInput) {
+            initSuggestion(searchInput, '{% url "suggestions:customer_all" %}', {
+                minChars: 3,
+                debounceMs: 300,
+                onSelect: function() {
+                    reloadTable('customer-table');
+                },
+            });
+        }
     });
 </script>
 {% endblock extra_js %}

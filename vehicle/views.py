@@ -29,12 +29,15 @@ def get_data(request):
 
     queryset = VehicleModel.objects.all().select_related("make")
     if search_query:
-        queryset = queryset.filter(
-            Q(make__name__icontains=search_query)
-            | Q(model_name__icontains=search_query)
-            | Q(transmission__icontains=search_query)
-            | Q(fuel_type__icontains=search_query)
-        )
+        terms = search_query.split()
+        for term in terms:
+            queryset = queryset.filter(
+                Q(make__name__icontains=term)
+                | Q(model_name__icontains=term)
+                | Q(transmission__icontains=term)
+                | Q(fuel_type__icontains=term)
+            )
+        queryset = queryset.distinct()
 
     valid_sorts = table_sorting(
         request,

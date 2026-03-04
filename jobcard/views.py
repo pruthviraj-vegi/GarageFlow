@@ -53,6 +53,7 @@ def get_data(request):
         queryset = queryset.filter(
             Q(job_card_number__icontains=search_query)
             | Q(customer__name__icontains=search_query)
+            | Q(customer__phone__icontains=search_query)
             | Q(vehicle_number__icontains=search_query)
             | Q(vehicle_model__model_name__icontains=search_query)
             | Q(vehicle_model__make__name__icontains=search_query)

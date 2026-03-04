@@ -25,7 +25,7 @@
       <div class="filters-row">
         <div class="search-box" style="width:500px">
           <i data-icon="search"></i>
-          <input type="text" name="q" value="{{ search_query }}" placeholder="Search invoices…" autofocus/>
+          <input type="search" name="q" value="{{ search_query }}" placeholder="Search invoices…" autofocus/>
         </div>
         <button type="submit" class="btn btn-primary" onclick="reloadTable('invoice-table')">
           <i data-icon="search"></i>
@@ -85,9 +85,19 @@
                 debounceDelay: 400,
                 placeholder: 'Loading invoices...'
             },
-            true // includeInputs = true to listen to input events
         );
         initTableSorting('invoice-table');
+        // Wire up suggestion autocomplete
+        const searchInput = document.querySelector('#invoice-search-form .search-box input[name="q"]');
+        if (searchInput) {
+            initSuggestion(searchInput, '{% url "suggestions:invoice_all" %}', {
+                minChars: 3,
+                debounceMs: 300,
+                onSelect: function() {
+                    reloadTable('invoice-table');
+                },
+            });
+        }
     });
 </script>
 {% endblock extra_js %}

@@ -13,6 +13,7 @@ urlpatterns = [
     path("<int:pk>/delete/", views.VehicleDeleteView.as_view(), name="delete"),
     # Vehicle Make URLs
     path("makes/", views.VehicleMakeListView.as_view(), name="make-list"),
+    path("api/makes/create/", views.vehicle_make_create_ajax, name="api_create_make"),
     path("makes/add/", views.VehicleMakeCreateView.as_view(), name="make-add"),
     path(
         "makes/<int:pk>/edit/", views.VehicleMakeUpdateView.as_view(), name="make-edit"

@@ -3,3 +3,5 @@ __pycache__
 .agent/*
 .env
 *.md
+logs/*
+*.log

@@ -1,8 +1,0 @@
-[2026-03-03 17:01:13,918] INFO django.server basehttp.py:213 "GET / HTTP/1.1" 302 0
-[2026-03-03 17:01:13,931] INFO django.server basehttp.py:213 "GET /login/?next=/ HTTP/1.1" 200 8410
-[2026-03-03 17:01:14,093] INFO django.server basehttp.py:213 "GET /static/css/main.css HTTP/1.1" 200 45861
-[2026-03-03 17:01:23,744] INFO django.server basehttp.py:213 "POST /login/ HTTP/1.1" 302 0
-[2026-03-03 17:01:23,755] INFO django.server basehttp.py:213 "GET / HTTP/1.1" 200 13203
-[2026-03-03 17:01:23,791] INFO django.server basehttp.py:213 "GET /static/js/icons.js HTTP/1.1" 200 6343
-[2026-03-03 17:01:23,791] INFO django.server basehttp.py:213 "GET /static/js/fetchData.js HTTP/1.1" 200 22366
-[2026-03-03 17:01:23,795] INFO django.server basehttp.py:213 "GET /static/js/main.js HTTP/1.1" 200 9506

@@ -88,7 +88,7 @@ class VehicleModel(SoftDeleteModel):
         ]
 
     def __str__(self):
-        return f"{self.make.name} {self.model_name}"
+        return f"{self.make.name} {self.model_name} ({self.fuel_type} - {self.transmission})"
 
     @property
     def display_name(self):

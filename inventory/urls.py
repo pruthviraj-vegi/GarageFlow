@@ -18,6 +18,9 @@ urlpatterns = [
     path("<int:pk>/delete/", views.inventory_delete, name="delete"),
     # Categories
     path("categories/", views.category_list, name="category_list"),
+    path(
+        "api/categories/create/", views.category_create_ajax, name="api_create_category"
+    ),
     path("categories/add/", views.CategoryCreateView.as_view(), name="category_add"),
     path(
         "categories/<int:pk>/edit/",
@@ -27,6 +30,7 @@ urlpatterns = [
     path("categories/<int:pk>/delete/", views.category_delete, name="category_delete"),
     # UOM
     path("uom/", views.uom_list, name="uom_list"),
+    path("api/uom/create/", views.uom_create_ajax, name="api_create_uom"),
     path("uom/add/", views.UOMCreateView.as_view(), name="uom_add"),
     path("uom/<int:pk>/edit/", views.UOMUpdateView.as_view(), name="uom_edit"),
     path("uom/<int:pk>/delete/", views.uom_delete, name="uom_delete"),

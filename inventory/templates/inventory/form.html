@@ -1,6 +1,57 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<!-- Select2 CSS -->
+<link href="{% static 'assets/select2/select2.min.css' %}" rel="stylesheet" />
+<style>
+  /* Select2 Dark/Light Theme Integration */
+  .select2-container--default .select2-selection--multiple {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    min-height: 38px;
+    padding-bottom: 0px;
+  }
+  .select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: var(--accent);
+  }
+  .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 4px;
+    margin-top: 5px;
+  }
+  .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: var(--text3);
+    border-right: 1px solid var(--border);
+  }
+  .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+    background-color: var(--surface3);
+    color: var(--red);
+  }
+  .select2-dropdown {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text);
+  }
+  .select2-container--default .select2-results__option--selected {
+    background-color: var(--surface2);
+  }
+  .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background-color: var(--accent);
+    color: #fff;
+  }
+  .select2-search--inline .select2-search__field {
+    color: var(--text);
+    font-family: inherit;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 
@@ -107,8 +158,13 @@
               <div class="form-section-title">Classification</div>
               <div class="form-grid">
                 <div class="form-group">
-                  <label class="form-label" for="{{ form.category.id_for_label }}">
-                    {{ form.category.label }} 
+                  <label class="form-label" style="display:flex;align-items:center;gap:8px;" for="{{ form.category.id_for_label }}">
+                    <span>{{ form.category.label }}</span>
+                    {% if perms.inventory.add_category %}
+                    <a href="#" id="open-new-category-modal" style="font-size:12px;font-weight:500;color:var(--accent);text-decoration:none;margin-left:auto;display:inline-flex;align-items:center;gap:3px;">
+                      <i data-icon="plus" style="width:12px;height:12px;"></i> New Category
+                    </a>
+                    {% endif %}
                   </label>
                   {{ form.category }}
                   {% if form.category.errors %}
@@ -116,8 +172,13 @@
                   {% endif %}
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="{{ form.uom.id_for_label }}">
-                    {{ form.uom.label }} 
+                  <label class="form-label" style="display:flex;align-items:center;gap:8px;" for="{{ form.uom.id_for_label }}">
+                    <span>{{ form.uom.label }}</span>
+                    {% if perms.inventory.add_uom %}
+                    <a href="#" id="open-new-uom-modal" style="font-size:12px;font-weight:500;color:var(--accent);text-decoration:none;margin-left:auto;display:inline-flex;align-items:center;gap:3px;">
+                      <i data-icon="plus" style="width:12px;height:12px;"></i> New Unit
+                    </a>
+                    {% endif %}
                   </label>
                   {{ form.uom }}
                   {% if form.uom.errors %}
@@ -235,4 +296,310 @@
     </div>
   </div>
 </div>
+
+<!-- ═══ NEW CATEGORY MODAL ═══ -->
+{% if perms.inventory.add_category %}
+<div class="modal-overlay" id="newCategoryModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-header-title">New Category</div>
+        <div class="modal-header-sub">Add a new inventory category</div>
+      </div>
+      <button type="button" class="modal-close" onclick="closeModal('newCategoryModal')">
+        <i data-icon="close"></i>
+      </button>
+    </div>
+    <form id="newCategoryForm">
+      <div class="modal-body">
+        <div id="modal-cat-alert"></div>
+        <div class="form-section">
+          <div class="form-grid">
+            {% for field in category_form %}
+            <div class="form-group">
+              <label class="form-label" for="{{ field.id_for_label }}">
+                {{ field.label }} {% if field.field.required %}<span>*</span>{% endif %}
+              </label>
+              {{ field }}
+              <div class="form-error" id="{{ field.html_name }}_error"></div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('newCategoryModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" id="modal-cat-save">Save Category</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══ NEW UOM MODAL ═══ -->
+{% if perms.inventory.add_uom %}
+<div class="modal-overlay" id="newUomModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-header-title">New Unit of Measure</div>
+        <div class="modal-header-sub">Add a new unit to the system</div>
+      </div>
+      <button type="button" class="modal-close" onclick="closeModal('newUomModal')">
+        <i data-icon="close"></i>
+      </button>
+    </div>
+    <form id="newUomForm">
+      <div class="modal-body">
+        <div id="modal-uom-alert"></div>
+        <div class="form-section">
+          <div class="form-grid">
+            {% for field in uom_form %}
+            <div class="form-group">
+              <label class="form-label" for="{{ field.id_for_label }}">
+                {{ field.label }} {% if field.field.required %}<span>*</span>{% endif %}
+              </label>
+              {{ field }}
+              <div class="form-error" id="{{ field.html_name }}_error"></div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('newUomModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" id="modal-uom-save">Save Unit</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<!-- jQuery (Required for Select2) -->
+<script src="{% static 'assets/jquery-3.7.1.min.js' %}"></script>
+<!-- Select2 JS -->
+<script src="{% static 'assets/select2/select2.min.js' %}"></script>
+<script>
+  $(document).ready(function() {
+    $('#{{ form.compatible_vehicles.id_for_label }}').select2({
+      placeholder: "Select compatible vehicles",
+      allowClear: true,
+      width: '100%'
+    });
+  });
+
+  /* ── New Category Modal ── */
+  (function() {
+    var openBtn = document.getElementById('open-new-category-modal');
+    var saveBtn = document.getElementById('modal-cat-save');
+    var alertBox = document.getElementById('modal-cat-alert');
+    var overlay = document.getElementById('newCategoryModal');
+    var formEl = document.getElementById('newCategoryForm');
+    if (!openBtn || !saveBtn || !formEl) return;
+
+    formEl.addEventListener('submit', function(e) {
+      e.preventDefault();
+      saveBtn.click();
+    });
+
+    function resetModal() {
+      formEl.reset();
+      var errors = formEl.querySelectorAll('.form-error');
+      errors.forEach(function(e) { e.textContent = ''; e.style.display = 'none'; });
+      if (alertBox) alertBox.innerHTML = '';
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Category';
+    }
+
+    openBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      resetModal();
+      openModal('newCategoryModal');
+      renderIcons();
+      setTimeout(function() {
+        var nameInput = document.getElementById('id_modal-cat-name');
+        if (nameInput) nameInput.focus();
+      }, 200);
+    });
+
+    if (overlay) {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeModal('newCategoryModal');
+      });
+    }
+
+    saveBtn.addEventListener('click', function() {
+      var errors = formEl.querySelectorAll('.form-error');
+      errors.forEach(function(e) { e.textContent = ''; e.style.display = 'none'; });
+      if (alertBox) alertBox.innerHTML = '';
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+
+      var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      var formData = new FormData(formEl);
+      var cleanFormData = new FormData();
+      for (var pair of formData.entries()) {
+        var key = pair[0];
+        if (key.startsWith('modal-cat-')) {
+          cleanFormData.append(key.replace('modal-cat-', ''), pair[1]);
+        } else {
+          cleanFormData.append(key, pair[1]);
+        }
+      }
+
+      fetch('{% url "inventory:api_create_category" %}', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken },
+        body: cleanFormData
+      })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+      .then(function(res) {
+        if (res.data.success) {
+          var catSelect = document.getElementById('id_category');
+          if (catSelect) {
+            var opt = document.createElement('option');
+            opt.value = res.data.category.id;
+            opt.textContent = res.data.category.display;
+            opt.selected = true;
+            catSelect.appendChild(opt);
+          }
+          closeModal('newCategoryModal');
+          if (typeof showToast === 'function') {
+            showToast('Category "' + res.data.category.display + '" created');
+          }
+        } else {
+          var errorKeys = Object.keys(res.data.errors || {});
+          errorKeys.forEach(function(key) {
+            var err = document.getElementById('modal-cat-' + key + '_error');
+            if (err) {
+              err.textContent = res.data.errors[key];
+              err.style.display = 'block';
+            }
+          });
+          if (errorKeys.length > 0) {
+            var firstField = document.getElementById('id_modal-cat-' + errorKeys[0]);
+            if (firstField) firstField.focus();
+          }
+        }
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Category';
+      })
+      .catch(function(e) {
+        if (alertBox) alertBox.innerHTML = '<div class="modal-alert error">Something went wrong.</div>';
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Category';
+        console.error(e);
+      });
+    });
+  })();
+
+  /* ── New UOM Modal ── */
+  (function() {
+    var openBtn = document.getElementById('open-new-uom-modal');
+    var saveBtn = document.getElementById('modal-uom-save');
+    var alertBox = document.getElementById('modal-uom-alert');
+    var overlay = document.getElementById('newUomModal');
+    var formEl = document.getElementById('newUomForm');
+    if (!openBtn || !saveBtn || !formEl) return;
+
+    formEl.addEventListener('submit', function(e) {
+      e.preventDefault();
+      saveBtn.click();
+    });
+
+    function resetModal() {
+      formEl.reset();
+      var errors = formEl.querySelectorAll('.form-error');
+      errors.forEach(function(e) { e.textContent = ''; e.style.display = 'none'; });
+      if (alertBox) alertBox.innerHTML = '';
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Unit';
+    }
+
+    openBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      resetModal();
+      openModal('newUomModal');
+      renderIcons();
+      setTimeout(function() {
+        var nameInput = document.getElementById('id_modal-uom-name');
+        if (nameInput) nameInput.focus();
+      }, 200);
+    });
+
+    if (overlay) {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeModal('newUomModal');
+      });
+    }
+
+    saveBtn.addEventListener('click', function() {
+      var errors = formEl.querySelectorAll('.form-error');
+      errors.forEach(function(e) { e.textContent = ''; e.style.display = 'none'; });
+      if (alertBox) alertBox.innerHTML = '';
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+
+      var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      var formData = new FormData(formEl);
+      var cleanFormData = new FormData();
+      for (var pair of formData.entries()) {
+        var key = pair[0];
+        if (key.startsWith('modal-uom-')) {
+          cleanFormData.append(key.replace('modal-uom-', ''), pair[1]);
+        } else {
+          cleanFormData.append(key, pair[1]);
+        }
+      }
+
+      fetch('{% url "inventory:api_create_uom" %}', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken },
+        body: cleanFormData
+      })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+      .then(function(res) {
+        if (res.data.success) {
+          var uomSelect = document.getElementById('id_uom');
+          if (uomSelect) {
+            var opt = document.createElement('option');
+            opt.value = res.data.uom.id;
+            opt.textContent = res.data.uom.display;
+            opt.selected = true;
+            uomSelect.appendChild(opt);
+          }
+          closeModal('newUomModal');
+          if (typeof showToast === 'function') {
+            showToast('Unit "' + res.data.uom.display + '" created');
+          }
+        } else {
+          var errorKeys = Object.keys(res.data.errors || {});
+          errorKeys.forEach(function(key) {
+            var err = document.getElementById('modal-uom-' + key + '_error');
+            if (err) {
+              err.textContent = res.data.errors[key];
+              err.style.display = 'block';
+            }
+          });
+          if (errorKeys.length > 0) {
+            var firstField = document.getElementById('id_modal-uom-' + errorKeys[0]);
+            if (firstField) firstField.focus();
+          }
+        }
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Unit';
+      })
+      .catch(function(e) {
+        if (alertBox) alertBox.innerHTML = '<div class="modal-alert error">Something went wrong.</div>';
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Unit';
+        console.error(e);
+      });
+    });
+  })();
+</script>
 {% endblock %}

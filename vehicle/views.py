@@ -91,6 +91,32 @@ def vehicle_model_create_ajax(request):
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
+@login_required
+def vehicle_make_create_ajax(request):
+    """AJAX endpoint to create a new vehicle make."""
+    if request.method == "POST":
+        from .forms import VehicleMakeForm
+        from django.http import JsonResponse
+
+        form = VehicleMakeForm(request.POST)
+        if form.is_valid():
+            vehicle_make = form.save(commit=False)
+            vehicle_make.created_by = request.user
+            vehicle_make.save()
+            return JsonResponse(
+                {
+                    "success": True,
+                    "make": {
+                        "id": vehicle_make.id,
+                        "display": vehicle_make.name,
+                    },
+                }
+            )
+        else:
+            return JsonResponse({"success": False, "errors": form.errors}, status=400)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
 class VehicleModelDetailView(DetailView):
     model = VehicleModel
     template_name = "vehicle/detail.html"
@@ -113,6 +139,14 @@ class VehicleCreateView(
     success_message = "Vehicle model created successfully."
     extra_context = {"title": "Add New Vehicle Model"}
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "make_form" not in context:
+            from .forms import VehicleMakeForm
+
+            context["make_form"] = VehicleMakeForm(prefix="modal-make")
+        return context
+
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         return super().form_valid(form)
@@ -128,6 +162,14 @@ class VehicleUpdateView(
     success_url = reverse_lazy("vehicle:list")
     success_message = "Vehicle model updated successfully."
     extra_context = {"title": "Edit Vehicle Model", "is_edit": True}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "make_form" not in context:
+            from .forms import VehicleMakeForm
+
+            context["make_form"] = VehicleMakeForm(prefix="modal-make")
+        return context
 
 
 class VehicleDeleteView(

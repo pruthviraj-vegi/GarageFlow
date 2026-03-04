@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}{{ title }}{% endblock %}
+{% load static %}
 
 {% block content %}
 
@@ -34,8 +35,14 @@
               <div class="form-section-title">Vehicle Identity</div>
               <div class="form-grid">
                 <div class="form-group">
-                  <label class="form-label" for="{{ form.make.id_for_label }}">
-                    {{ form.make.label }} <span>*</span>
+                <div class="form-group">
+                  <label class="form-label" style="display:flex;align-items:center;gap:8px;" for="{{ form.make.id_for_label }}">
+                    <span>{{ form.make.label }} <span>*</span></span>
+                    {% if perms.vehicle.add_vehiclemake %}
+                    <a href="#" id="open-new-make-modal" style="font-size:12px;font-weight:500;color:var(--accent);text-decoration:none;margin-left:auto;display:inline-flex;align-items:center;gap:3px;">
+                      <i data-icon="plus" style="width:12px;height:12px;"></i> New Make
+                    </a>
+                    {% endif %}
                   </label>
                   {{ form.make }}
                   {% if form.make.errors %}
@@ -121,4 +128,159 @@
     </div>
   </div>
 </div>
+
+<!-- ═══ NEW VEHICLE MAKE MODAL ═══ -->
+{% if perms.vehicle.add_vehiclemake %}
+<div class="modal-overlay" id="newMakeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-header-title">New Vehicle Make</div>
+        <div class="modal-header-sub">Add a new vehicle make to the system</div>
+      </div>
+      <button type="button" class="modal-close" onclick="closeModal('newMakeModal')">
+        <i data-icon="close"></i>
+      </button>
+    </div>
+    <form id="newMakeForm">
+      <div class="modal-body">
+        <div id="modal-make-alert"></div>
+        <div class="form-section">
+          <div class="form-grid">
+            {% for field in make_form %}
+            <div class="form-group">
+              <label class="form-label" for="{{ field.id_for_label }}">
+                {{ field.label }} {% if field.field.required %}<span>*</span>{% endif %}
+              </label>
+              {{ field }}
+              <div class="form-error" id="{{ field.html_name }}_error"></div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('newMakeModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" id="modal-make-save">Save Make</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ── New Vehicle Make Modal ── */
+(function() {
+  var openBtn  = document.getElementById('open-new-make-modal');
+  var saveBtn  = document.getElementById('modal-make-save');
+  var alertBox = document.getElementById('modal-make-alert');
+  var overlay  = document.getElementById('newMakeModal');
+  var formEl   = document.getElementById('newMakeForm');
+  if (!openBtn || !saveBtn || !formEl) return;
+
+  formEl.addEventListener('submit', function(e) {
+    e.preventDefault();
+    saveBtn.click();
+  });
+
+  function resetModal() {
+    formEl.reset();
+    var errors = formEl.querySelectorAll('.form-error');
+    errors.forEach(function(e) { e.textContent = ''; e.style.display = 'none'; });
+    if (alertBox) alertBox.innerHTML = '';
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Make';
+  }
+
+  // Open modal
+  openBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    resetModal();
+    openModal('newMakeModal');
+    renderIcons();
+    setTimeout(function() {
+      var nameInput = document.getElementById('id_modal-make-name');
+      if (nameInput) nameInput.focus();
+    }, 200);
+  });
+
+  // Close on backdrop click
+  if (overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) closeModal('newMakeModal');
+    });
+  }
+
+  // Save via AJAX
+  saveBtn.addEventListener('click', function() {
+    var errors = formEl.querySelectorAll('.form-error');
+    errors.forEach(function(e) { e.textContent = ''; e.style.display = 'none'; });
+    if (alertBox) alertBox.innerHTML = '';
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    var formData = new FormData(formEl);
+
+    var cleanFormData = new FormData();
+    for (var pair of formData.entries()) {
+      var key = pair[0];
+      if (key.startsWith('modal-make-')) {
+        cleanFormData.append(key.replace('modal-make-', ''), pair[1]);
+      } else {
+        cleanFormData.append(key, pair[1]);
+      }
+    }
+
+    fetch('{% url "vehicle:api_create_make" %}', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrfToken },
+      body: cleanFormData
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (res.data.success) {
+        var makeSelect = document.getElementById('id_make');
+        if (makeSelect) {
+          var opt = document.createElement('option');
+          opt.value = res.data.make.id;
+          opt.textContent = res.data.make.display;
+          opt.selected = true;
+          makeSelect.appendChild(opt);
+        }
+        closeModal('newMakeModal');
+        if (typeof showToast === 'function') {
+          showToast('Vehicle make "' + res.data.make.display + '" created');
+        }
+      } else {
+        var errorKeys = Object.keys(res.data.errors || {});
+        errorKeys.forEach(function(key) {
+          var err = document.getElementById('modal-make-' + key + '_error');
+          if (err) {
+            err.textContent = res.data.errors[key];
+            err.style.display = 'block';
+          }
+        });
+        if (errorKeys.length > 0) {
+          var firstField = document.getElementById('id_modal-make-' + errorKeys[0]);
+          if (firstField) firstField.focus();
+        }
+      }
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Make';
+    })
+    .catch(function(e) {
+      if (alertBox) {
+        alertBox.innerHTML = '<div class="modal-alert error">Something went wrong. Please try again.</div>';
+      }
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Make';
+      console.error(e);
+    });
+  });
+})();
+</script>
 {% endblock %}

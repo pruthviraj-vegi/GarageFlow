@@ -94,6 +94,18 @@ class InventoryCreateView(
     success_url = reverse_lazy("inventory:list")
     extra_context = {"title": "Add New Item"}
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "category_form" not in context:
+            from .forms import CategoryForm
+
+            context["category_form"] = CategoryForm(prefix="modal-cat")
+        if "uom_form" not in context:
+            from .forms import UOMForm
+
+            context["uom_form"] = UOMForm(prefix="modal-uom")
+        return context
+
     def get_success_message(self, cleaned_data):
         return f"Item {self.object.name} added successfully."
 
@@ -132,6 +144,18 @@ class InventoryUpdateView(
     permission_required = "inventory.change_inventory"
     success_url = reverse_lazy("inventory:list")
     extra_context = {"title": "Edit Item", "is_edit": True}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "category_form" not in context:
+            from .forms import CategoryForm
+
+            context["category_form"] = CategoryForm(prefix="modal-cat")
+        if "uom_form" not in context:
+            from .forms import UOMForm
+
+            context["uom_form"] = UOMForm(prefix="modal-uom")
+        return context
 
     def get_success_message(self, cleaned_data):
         return f"Item {self.object.name} updated successfully."
@@ -268,6 +292,31 @@ def category_list(request):
     return render(request, "inventory/category/list.html", {"categories": categories})
 
 
+@login_required
+def category_create_ajax(request):
+    """AJAX endpoint to create a new category."""
+    if request.method == "POST":
+        from .forms import CategoryForm
+
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            category = form.save(commit=False)
+            category.created_by = request.user
+            category.save()
+            return JsonResponse(
+                {
+                    "success": True,
+                    "category": {
+                        "id": category.id,
+                        "display": category.name,
+                    },
+                }
+            )
+        else:
+            return JsonResponse({"success": False, "errors": form.errors}, status=400)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
 class CategoryCreateView(
     LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView
 ):
@@ -330,6 +379,31 @@ def uom_list(request):
     """List all UOMs"""
     uoms = UOM.objects.all().order_by("name")
     return render(request, "inventory/uom/list.html", {"uoms": uoms})
+
+
+@login_required
+def uom_create_ajax(request):
+    """AJAX endpoint to create a new UOM."""
+    if request.method == "POST":
+        from .forms import UOMForm
+
+        form = UOMForm(request.POST)
+        if form.is_valid():
+            uom = form.save(commit=False)
+            uom.created_by = request.user
+            uom.save()
+            return JsonResponse(
+                {
+                    "success": True,
+                    "uom": {
+                        "id": uom.id,
+                        "display": uom.name,
+                    },
+                }
+            )
+        else:
+            return JsonResponse({"success": False, "errors": form.errors}, status=400)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
 class UOMCreateView(

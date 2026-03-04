@@ -1,6 +1,72 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ title }} - GarageFlow{% endblock %}
+
+{% block extra_css %}
+<!-- Select2 CSS -->
+<link href="{% static 'assets/select2/select2.min.css' %}" rel="stylesheet" />
+<style>
+  /* Select2 Dark/Light Theme Integration */
+  .select2-container--default .select2-selection--multiple,
+  .select2-container--default .select2-selection--single {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    min-height: 38px;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--text);
+    line-height: 36px;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+  }
+  .select2-container--default.select2-container--focus .select2-selection--multiple,
+  .select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: var(--accent);
+    outline: none;
+  }
+  .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 4px;
+    margin-top: 5px;
+  }
+  .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: var(--text3);
+    border-right: 1px solid var(--border);
+  }
+  .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+    background-color: var(--surface3);
+    color: var(--red);
+  }
+  .select2-dropdown {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text);
+  }
+  .select2-search--dropdown .select2-search__field {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text);
+  }
+  .select2-container--default .select2-results__option--selected {
+    background-color: var(--surface2);
+  }
+  .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background-color: var(--accent);
+    color: #fff;
+  }
+  .select2-search--inline .select2-search__field {
+    color: var(--text);
+    font-family: inherit;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 
@@ -258,7 +324,23 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- jQuery (Required for Select2) -->
+<script src="{% static 'assets/jquery-3.7.1.min.js' %}"></script>
+<!-- Select2 JS -->
+<script src="{% static 'assets/select2/select2.min.js' %}"></script>
 <script>
+  $(document).ready(function() {
+    $('#{{ form.customer.id_for_label }}').select2({
+      placeholder: "Select a customer",
+      allowClear: true,
+      width: '100%'
+    });
+    $('#{{ form.vehicle_model.id_for_label }}').select2({
+      placeholder: "Select vehicle model",
+      allowClear: true,
+      width: '100%'
+    });
+  });
 (function() {
   const panelInput = document.getElementById('jc-vehicle-search');
   const formInput  = document.getElementById('id_vehicle_number');
@@ -327,8 +409,14 @@
               var custSelect  = document.getElementById('id_customer');
               var modelSelect = document.getElementById('id_vehicle_model');
 
-              if (custSelect)  custSelect.value  = custId;
-              if (modelSelect) modelSelect.value  = modelId || '';
+              if (custSelect) {
+                custSelect.value  = custId;
+                $(custSelect).trigger('change');
+              }
+              if (modelSelect) {
+                modelSelect.value  = modelId || '';
+                $(modelSelect).trigger('change');
+              }
               if (formInput)   formInput.value    = vehNum;
               if (panelInput)  panelInput.value   = vehNum;
 
@@ -456,6 +544,7 @@
           opt.textContent = res.data.customer.display;
           opt.selected = true;
           custSelect.appendChild(opt);
+          $(custSelect).trigger('change');
         }
         closeModal('newCustomerModal');
         if (typeof showToast === 'function') {
@@ -564,6 +653,7 @@
           opt.textContent = res.data.vehicle.display;
           opt.selected = true;
           modelSelect.appendChild(opt);
+          $(modelSelect).trigger('change');
         }
         closeModal('newVehicleModelModal');
         if (typeof showToast === 'function') {

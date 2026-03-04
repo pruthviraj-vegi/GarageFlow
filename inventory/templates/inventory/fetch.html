@@ -2,7 +2,7 @@
 {% load custom_filters %}
 
 {% for item in page_obj %}
-<tr>
+<tr data-id="{{ item.pk }}">
     <!-- Item -->
     <td>
     <div class="cell-profile">
@@ -25,6 +25,23 @@
     <!-- Category -->
     <td>
     <span class="badge badge-active">{{ item.category.name|default:"-" }}</span>
+    </td>
+    <!-- Compatible Vehicles -->
+    <td>
+      {% if item.compatible_vehicles.count > 0 %}
+      <div class="custom-tooltip">
+        <span class="badge badge-default">
+          {{ item.compatible_vehicles.count }} Vehicles
+        </span>
+        <span class="tooltip-text">
+          {% for vehicle in item.compatible_vehicles.all %}
+            {{ vehicle }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </span>
+      </div>
+      {% else %}
+      <span class="info-secondary">-</span>
+      {% endif %}
     </td>
     <!-- Qty -->
     <td class="td-mono info-primary"> {% if item.is_low_stock %}<span style="color: red;">{{ item.available_quantity }}</span>{% else %}{{ item.available_quantity }}{% endif %}</td>

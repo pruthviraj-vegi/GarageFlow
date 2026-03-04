@@ -4,6 +4,68 @@
 
 {% block title %}Inventory - GarageFlow{% endblock %}
 
+{% block extra_css %}
+<style>
+  /* Custom Tooltip */
+  .custom-tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+  }
+  .custom-tooltip .tooltip-text {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: var(--surface2);
+    color: var(--text);
+    text-align: left;
+    border-radius: var(--r-sm);
+    padding: 12px;
+    border: 1px solid var(--border);
+    
+    /* Position fixed to break out of table-wrap overflow */
+    position: absolute;
+    z-index: 10000;
+    top: 50%;
+    right: 110%; /* Show on the left side to avoid horizontal scroll crop */
+    transform: translateY(-50%);
+    
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: normal;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  /* Arrow pointing right */
+  .custom-tooltip .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 100%; /* At the right of the tooltip */
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent transparent var(--surface2);
+  }
+  .custom-tooltip .tooltip-text::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    margin-top: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent transparent var(--border);
+    z-index: -1;
+  }
+  .custom-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Page header -->
 <div class="page-header">
@@ -67,6 +129,7 @@
               <th data-sort="name">Item</th>
               <th data-sort="barcode">Barcode</th>
               <th>Category</th>
+              <th>Compatible Vehicles</th>
               <th data-sort="quantity">Qty</th>
               <th data-sort="cost_price">Cost</th>
               <th data-sort="selling_price">Selling</th>

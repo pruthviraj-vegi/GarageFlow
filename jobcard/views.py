@@ -443,12 +443,37 @@ def inventory_search(request):
     if len(query) < 2:
         return JsonResponse({"results": []})
 
-    items = Inventory.objects.filter(
+    base_qs = Inventory.objects.filter(
         Q(brand__icontains=query)
         | Q(name__icontains=query)
         | Q(part_number__icontains=query)
         | Q(barcode__icontains=query)
-    ).order_by("name")[:10]
+    )
+
+    jobcard_id = request.GET.get("jobcard_id")
+    jobcard_vehicle_model_id = None
+    if jobcard_id:
+        try:
+            jobcard = JobCard.objects.get(pk=jobcard_id)
+            if jobcard.vehicle_model_id:
+                jobcard_vehicle_model_id = jobcard.vehicle_model_id
+        except ObjectDoesNotExist:
+            pass
+
+    # Annotate compatibility at the DB level — no Python loop needed
+    if jobcard_vehicle_model_id:
+        from django.db.models import Exists, OuterRef
+
+        base_qs = base_qs.annotate(
+            is_compatible=Exists(
+                Inventory.compatible_vehicles.through.objects.filter(
+                    inventory_id=OuterRef("pk"),
+                    vehiclemodel_id=jobcard_vehicle_model_id,
+                )
+            )
+        )
+
+    items = base_qs.order_by("name")[:10]
 
     results = [
         {
@@ -459,6 +484,9 @@ def inventory_search(request):
             "barcode": item.barcode,
             "selling_price": str(item.selling_price),
             "quantity": str(item.available_quantity),
+            "compatibility": (
+                "Compatible" if getattr(item, "is_compatible", False) else ""
+            ),
         }
         for item in items
     ]

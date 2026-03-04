@@ -231,6 +231,8 @@
     .then(() => {
       loading.style.display = "none";
       detail.style.display  = "";
+      const searchEl = document.getElementById("jc-inv-search");
+      if (searchEl) searchEl.focus();
     })
     .catch(() => {
       loading.textContent = "Failed to load job card data.";
@@ -341,6 +343,7 @@
         <div>
           <div class="inv-search-item-name">${r.name}</div>
           <div class="inv-search-item-brand">${r.brand}${r.part_number ? ' · ' + r.part_number : ''}${r.barcode ? ' · ' + r.barcode : ''}</div>
+          ${r.compatibility ? '<div class="inv-search-item-compat" style="margin-top: 4px;"><span class="badge badge-success" style="font-size: 0.75em; padding: 2px 6px;">' + r.compatibility + '</span></div>' : ''}
         </div>
         <div class="inv-search-item-meta">
           <span class="inv-search-item-price">${r.selling_price}</span>
@@ -378,7 +381,7 @@
     }
 
     debounceTimer = setTimeout(() => {
-      fetch(`${INV_SEARCH_URL}?q=${encodeURIComponent(q)}`)
+      fetch(`${INV_SEARCH_URL}?q=${encodeURIComponent(q)}&jobcard_id={{ jobcard_pk }}`)
         .then(r => r.json())
         .then(data => renderResults(data.results))
         .catch(() => closeDropdown());

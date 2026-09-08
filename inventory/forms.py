@@ -44,13 +44,20 @@ class InventoryForm(AutofocusErrorMixin, forms.ModelForm):
             "uom",
             "compatible_vehicles",
             "compatibility_notes",
+            "quantity",
             "cost_price",
             "selling_price",
-            "quantity",
             "low_stock",
             "shelf_location",
             "description",
         ]
+        labels = {
+            "quantity": "Quantity",
+            "cost_price": "Cost",
+            "selling_price": "MRP",
+            "low_stock": "Low Stock Alert",
+            "shelf_location": "Shelf / Bin Location",
+        }
         widgets = {
             "brand": forms.TextInput(
                 attrs={
@@ -89,17 +96,17 @@ class InventoryForm(AutofocusErrorMixin, forms.ModelForm):
                     "rows": 3,
                 }
             ),
+            "quantity": forms.NumberInput(
+                attrs={"class": "form-input", "placeholder": "Quantity (0)", "step": "1"}
+            ),
             "cost_price": forms.NumberInput(
-                attrs={"class": "form-input", "placeholder": "0.00", "step": "1"}
+                attrs={"class": "form-input", "placeholder": "Cost (0.00)", "step": "0.01"}
             ),
             "selling_price": forms.NumberInput(
-                attrs={"class": "form-input", "placeholder": "0.00", "step": "1"}
-            ),
-            "quantity": forms.NumberInput(
-                attrs={"class": "form-input", "placeholder": "0", "step": "1"}
+                attrs={"class": "form-input", "placeholder": "MRP (0.00)", "step": "0.01"}
             ),
             "low_stock": forms.NumberInput(
-                attrs={"class": "form-input", "placeholder": "0", "step": "1"}
+                attrs={"class": "form-input", "placeholder": "Min Stock (0)", "step": "1"}
             ),
             "shelf_location": forms.TextInput(
                 attrs={"class": "form-input", "placeholder": "e.g. A1-B2"}
@@ -113,6 +120,19 @@ class InventoryForm(AutofocusErrorMixin, forms.ModelForm):
                 }
             ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # When creating a new item, default category and uom to initial or first available if existed
+        if not self.instance or not self.instance.pk:
+            if not self.initial.get("category"):
+                first_category = Category.objects.first()
+                if first_category:
+                    self.initial["category"] = first_category.pk
+            if not self.initial.get("uom"):
+                first_uom = UOM.objects.first()
+                if first_uom:
+                    self.initial["uom"] = first_uom.pk
 
     def clean_name(self):
         """Validate the inventory item name."""
@@ -149,14 +169,15 @@ class InventoryForm(AutofocusErrorMixin, forms.ModelForm):
         """Validate the inventory barcode to ensure uniqueness."""
         barcode = self.cleaned_data.get("barcode", "").strip()
         if barcode:
-            if len(barcode) > 20:
-                raise forms.ValidationError("Barcode must not exceed 20 characters.")
+            if len(barcode) > 100:
+                raise forms.ValidationError("Barcode must not exceed 100 characters.")
             qs = Inventory.objects.filter(barcode=barcode)
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
                 raise forms.ValidationError("An item with this barcode already exists.")
-        return barcode
+            return barcode
+        return ""
 
     def clean(self):
         cleaned_data = super().clean()
@@ -181,10 +202,11 @@ class InventoryStockInForm(forms.Form):
 
     quantity = forms.IntegerField(
         min_value=1,
+        label="Quantity",
         widget=forms.NumberInput(
             attrs={
                 "class": "form-input",
-                "placeholder": "Enter quantity",
+                "placeholder": "Quantity (e.g. 10)",
                 "autofocus": True,
             }
         ),
@@ -193,16 +215,18 @@ class InventoryStockInForm(forms.Form):
         max_digits=10,
         decimal_places=2,
         min_value=0.01,
+        label="Cost",
         widget=forms.NumberInput(
-            attrs={"class": "form-input", "placeholder": "0.00", "step": "0.01"}
+            attrs={"class": "form-input", "placeholder": "Cost Price (0.00)", "step": "0.01"}
         ),
     )
     selling_price = forms.DecimalField(
         max_digits=10,
         decimal_places=2,
         min_value=0.01,
+        label="MRP",
         widget=forms.NumberInput(
-            attrs={"class": "form-input", "placeholder": "0.00", "step": "0.01"}
+            attrs={"class": "form-input", "placeholder": "MRP (0.00)", "step": "0.01"}
         ),
     )
     reference_number = forms.CharField(

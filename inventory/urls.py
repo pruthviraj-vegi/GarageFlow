@@ -13,6 +13,7 @@ urlpatterns = [
     path(
         "<int:pk>/", views.InventoryDetailView.as_view(), name="detail"
     ),  # pylint: disable=no-member
+    path("<int:pk>/print-barcode/", views.inventory_print_barcode, name="print_barcode"),
     path("<int:pk>/stock-in/", views.InventoryStockInView.as_view(), name="stock_in"),
     path("<int:pk>/edit/", views.InventoryUpdateView.as_view(), name="edit"),
     path("<int:pk>/delete/", views.inventory_delete, name="delete"),

@@ -1,0 +1,203 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ invoice.invoice_number }} - 58mm Print - GarageFlow</title>
+  <link rel="stylesheet" href="{% static 'css/58mm.css' %}">
+  <link rel="shortcut icon" type="image/ico" href="{% static 'images/favicon.ico' %}">
+</head>
+<body>
+
+  <!-- Screen Toolbar (hidden in print) -->
+  <div class="print-actions no-print">
+    <button type="button" class="print-btn" onclick="handlePrint()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+        <rect x="6" y="14" width="12" height="8"></rect>
+      </svg>
+      Print Receipt (Enter)
+    </button>
+    <a href="{% url 'invoice:detail' invoice.pk %}" class="back-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      Back to Invoice (Esc)
+    </a>
+  </div>
+
+  <!-- 58mm Receipt Ticket -->
+  <div class="container">
+    <!-- Header -->
+    <div class="shop-header">
+      <div class="shop-name">GarageFlow</div>
+      <div class="shop-sub">Automotive Workshop &amp; Services</div>
+      <div class="receipt-badge">TAX INVOICE / RECEIPT</div>
+    </div>
+
+    <div class="divider-double"></div>
+
+    <!-- Invoice Details -->
+    <div class="meta-section">
+      <div class="meta-row">
+        <span class="meta-label">Invoice No:</span>
+        <span class="meta-val">{{ invoice.invoice_number }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Date:</span>
+        <span class="meta-val">{{ invoice.created_at|date:"d/m/Y h:i A" }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Cashier:</span>
+        <span class="meta-val">{% if invoice.created_by %}{{ invoice.created_by.get_short_name|default:invoice.created_by }}{% else %}Admin{% endif %}</span>
+      </div>
+    </div>
+
+    <div class="divider-dashed"></div>
+
+    <!-- Customer & Vehicle Details -->
+    <div class="meta-section">
+      <div class="meta-row">
+        <span class="meta-label">Customer:</span>
+        <span class="meta-val">{{ invoice.customer.name }}</span>
+      </div>
+      {% if invoice.customer.phone %}
+      <div class="meta-row">
+        <span class="meta-label">Phone:</span>
+        <span class="meta-val">{{ invoice.customer.phone|phone_number }}</span>
+      </div>
+      {% endif %}
+
+      {% if invoice.job_card %}
+      <div class="meta-row">
+        <span class="meta-label">Job Card:</span>
+        <span class="meta-val">{{ invoice.job_card.job_card_number }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Vehicle No:</span>
+        <span class="meta-val">{{ invoice.job_card.vehicle_number }}</span>
+      </div>
+      {% if invoice.job_card.vehicle_model %}
+      <div class="meta-row">
+        <span class="meta-label">Model:</span>
+        <span class="meta-val">{{ invoice.job_card.vehicle_model.make.name }} {{ invoice.job_card.vehicle_model.model_name }}</span>
+      </div>
+      {% endif %}
+      {% if invoice.job_card.odometer_reading %}
+      <div class="meta-row">
+        <span class="meta-label">Odometer:</span>
+        <span class="meta-val">{{ invoice.job_card.odometer_reading }} km</span>
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="meta-row">
+        <span class="meta-label">Sale Type:</span>
+        <span class="meta-val">Counter Sale</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="divider-solid"></div>
+
+    <!-- Items Table -->
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th class="col-item">Item</th>
+          <th class="col-qty">Qty</th>
+          <th class="col-rate">Rate</th>
+          <th class="col-amt">Amt</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td class="col-item">
+            <div class="item-desc font-semibold">{{ item.description }}</div>
+            {% if item.inventory and item.inventory.part_number %}
+            <div class="item-sub">PN: {{ item.inventory.part_number }}</div>
+            {% endif %}
+          </td>
+          <td class="col-qty">{{ item.quantity|floatformat:2 }}</td>
+          <td class="col-rate">{{ item.unit_price|currency }}</td>
+          <td class="col-amt font-semibold">{{ item.total_price|currency }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="text-center" style="padding: 2mm 0;">No items billed</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="divider-dashed"></div>
+
+    <!-- Summary & Totals -->
+    <div class="total-section">
+      <div class="meta-row">
+        <span class="meta-label">Total Items:</span>
+        <span class="meta-val">{{ items|length }} ({{ total_qty|floatformat:2 }} qty)</span>
+      </div>
+      <div class="grand-total-row">
+        <span>TOTAL DUE:</span>
+        <span>₹ {{ invoice.total_amount|currency }}</span>
+      </div>
+    </div>
+
+    <!-- Notes if any -->
+    {% if invoice.notes %}
+    <div class="notes-section">
+      <strong>Notes:</strong> {{ invoice.notes }}
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer-content">
+      <div class="thank-you">Thank You! Drive Safe.</div>
+      <div class="footer-note">Computer Generated Invoice</div>
+      <div class="footer-note">Signature Not Required</div>
+      <div class="terms-section">
+        <div>* Goods &amp; spares once fitted/sold are not returnable</div>
+        <div>* Vehicles tested/driven at owner's risk</div>
+        <div>* E. &amp; O.E.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let printInProgress = false;
+
+    function handlePrint() {
+      if (printInProgress) return;
+      printInProgress = true;
+      setTimeout(() => {
+        window.print();
+        printInProgress = false;
+      }, 100);
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        const backBtn = document.querySelector('.back-btn');
+        if (backBtn && backBtn.href) {
+          window.location.href = backBtn.href;
+        } else {
+          window.close();
+        }
+      }
+      if (event.key === 'Enter') {
+        handlePrint();
+      }
+    });
+
+    window.addEventListener('load', function () {
+      setTimeout(() => {
+        window.print();
+      }, 400);
+    });
+  </script>
+</body>
+</html>

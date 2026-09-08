@@ -154,3 +154,13 @@ def phone_number(value):
     except (TypeError, ValueError) as e:
         logger.error(e)
         return value
+
+
+@register.filter(name="range")
+def range_filter(value):
+    """Creates a range from 0 to value-1"""
+    try:
+        return range(int(value))
+    except (ValueError, TypeError):
+        return range(0)
+

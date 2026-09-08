@@ -60,7 +60,7 @@
           <div class="user-avatar">{{ user.get_short_name|slice:":2"|upper }}</div>
           <div class="user-info">
             <div class="user-name">{{ user.get_short_name }}</div>
-            <div class="user-role">Administrator</div>
+            <div class="user-role">{{ user.primary_role }}</div>
           </div>
         </div>
         <a href="{% url 'base:logout' %}" class="icon-btn" title="Logout">

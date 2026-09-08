@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 from base.manager import SoftDeleteModel
-from base.utility import phone_regex
+from base.utility import phone_regex, generate_unique_code
 
 
 class Customer(SoftDeleteModel):
@@ -29,30 +29,18 @@ class Customer(SoftDeleteModel):
 
     def create_customer_id(self, save=True):
         """
-        Create a new customer ID based on the object's primary key.
-
-        Args:
-            save (bool): Whether to save the customer_id to the database.
-
-        Returns:
-            str: The newly created customer ID (e.g., CUST0001)
+        Generate and assign a unique customer ID (e.g., CUST0001).
         """
-        if not self.pk:
-            super(Customer, self).save()
-
-        self.customer_id = f"CUST{self.pk:04d}"
-
-        if save:
-            super(Customer, self).save(update_fields=["customer_id"])
-
+        if not self.customer_id:
+            self.customer_id = generate_unique_code("CUST", Customer, "customer_id", 4)
+            if save and self.pk:
+                super(Customer, self).save(update_fields=["customer_id"])
         return self.customer_id
 
     def save(self, *args, **kwargs):
-        if not self.pk and not self.customer_id:
-            super().save(*args, **kwargs)
-            self.create_customer_id(save=True)
-        else:
-            super().save(*args, **kwargs)
+        if not self.customer_id:
+            self.customer_id = generate_unique_code("CUST", Customer, "customer_id", 4)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} - {self.phone}"

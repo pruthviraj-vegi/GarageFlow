@@ -32,6 +32,12 @@
           Search
         </button>
       </div>
+      {% if perms.invoice.add_invoice %}
+      <a href="{% url 'invoice:add' %}" class="btn btn-primary">
+        <i data-icon="plus"></i>
+        Add Invoice
+      </a>
+      {% endif %}
     </form>
 
     <div class="card">

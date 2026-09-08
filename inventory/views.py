@@ -1,5 +1,9 @@
 """Views for the inventory application."""
 
+import base64
+import io
+from barcode import Code128
+from barcode.writer import SVGWriter
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, FormView
@@ -9,8 +13,10 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
+from decimal import Decimal
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Sum, F
+from django.db.models.functions import Coalesce
 from base.utility import render_paginated_response, table_sorting
 from .models import Inventory, Category, UOM
 from .forms import InventoryForm, CategoryForm, UOMForm, InventoryStockInForm
@@ -25,10 +31,10 @@ from .services import InventoryService
 def inventory_list(request):
     """List all inventory items"""
     items_count = Inventory.objects.count()
-    # Simple total_value calculation for all items initially
-    # Since available_quantity is a property, we compute it in python
-    items = Inventory.objects.all()
-    total_value = sum(item.available_quantity * item.cost_price for item in items)
+    # Compute total stock asset valuation directly in database (quantity * cost_price)
+    total_value = Inventory.objects.aggregate(
+        total=Coalesce(Sum(F("quantity") * F("cost_price")), Decimal("0"))
+    )["total"]
     return render(
         request,
         "inventory/main.html",
@@ -40,7 +46,11 @@ def get_data(request):
     """Return a filtered and sorted inventory queryset based on request params."""
     search_query = request.GET.get("q", "")
 
-    queryset = Inventory.objects.all().select_related("category", "uom")
+    queryset = (
+        Inventory.objects.all()
+        .select_related("category", "uom")
+        .prefetch_related("compatible_vehicles__make")
+    )
     if search_query:
         # Split query into words so "swift oil filter" matches items where
         # each word is found in at least one searchable field.
@@ -101,6 +111,18 @@ class InventoryCreateView(
     success_url = reverse_lazy("inventory:list")
     extra_context = {"title": "Add New Item"}
 
+    def get_initial(self):
+        initial = super().get_initial()
+        if not initial.get("category"):
+            first_cat = Category.objects.first()
+            if first_cat:
+                initial["category"] = first_cat.pk
+        if not initial.get("uom"):
+            first_uom = UOM.objects.first()
+            if first_uom:
+                initial["uom"] = first_uom.pk
+        return initial
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if "category_form" not in context:
@@ -115,6 +137,9 @@ class InventoryCreateView(
 
     def get_success_message(self, cleaned_data):
         return f"Item {self.object.name} added successfully."
+
+    def get_success_url(self):
+        return reverse("inventory:detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -285,6 +310,40 @@ class InventoryStockInView(
 
     def get_success_url(self):
         return reverse("inventory:detail", kwargs={"pk": self.object.pk})
+
+
+@login_required
+def inventory_print_barcode(request, pk):
+    """Generate and render barcode labels for an inventory item (like My_Billing)."""
+    item = get_object_or_404(Inventory, pk=pk)
+
+    # Ensure barcode exists
+    if not item.barcode:
+        item.create_barcode(save=True)
+
+    # Generate Code128 SVG barcode without text/number below the barcode
+    code128 = Code128(item.barcode, writer=SVGWriter())
+    buffer = io.BytesIO()
+    code128.write(buffer, options={"write_text": False})
+    buffer.seek(0)
+    barcode_svg = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    # Number of barcode stickers to print
+    count_param = request.GET.get("count")
+    if count_param and count_param.isdigit() and int(count_param) > 0:
+        print_count = min(int(count_param), 100)
+    else:
+        print_count = 1
+
+    context = {
+        "values": item,
+        "item": item,
+        "barcode_svg": barcode_svg,
+        "print_count": print_count,
+        "count": print_count,
+        "title": f"{item.barcode} - Barcode",
+    }
+    return render(request, "inventory/print_barcode.html", context)
 
 
 # ============================================

@@ -43,6 +43,9 @@
     <!-- Actions -->
     <td>
     <div class="action-buttons">
+        <a href="{% url 'invoice:print_58mm' inv.pk %}" target="_blank" class="action-btn" title="Print 58mm Receipt">
+        <i data-icon="printer"></i>
+        </a>
         <a href="{% url 'invoice:detail' inv.pk %}" class="action-btn" title="View Details">
         <i data-icon="eye"></i>
         </a>

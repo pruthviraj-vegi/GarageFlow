@@ -207,9 +207,27 @@ function buildCharts() {
   /* ── Revenue Line Chart ── */
   const rCtx = document.getElementById('revenueChart');
   if (rCtx) {
+    if (revenueChart) {
+      try { revenueChart.destroy(); } catch (e) {}
+      revenueChart = null;
+    }
+    if (typeof Chart.getChart === 'function') {
+      const existing = Chart.getChart(rCtx);
+      if (existing) existing.destroy();
+    }
+
     const ctx = rCtx.getContext('2d');
-    const months = ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
-    const values = [320000, 285000, 410000, 365000, 442000, 398000, 490000, 520000, 388000, 460000, 512000, 482350];
+    let months = ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
+    let values = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    if (rCtx.dataset.labels && rCtx.dataset.values) {
+      try {
+        months = JSON.parse(rCtx.dataset.labels);
+        values = JSON.parse(rCtx.dataset.values);
+      } catch (e) {
+        console.warn('Failed to parse revenue chart dataset', e);
+      }
+    }
 
     const gradient = ctx.createLinearGradient(0, 0, 0, 220);
     gradient.addColorStop(0, isDark ? 'rgba(249,115,22,.25)' : 'rgba(194,65,12,.15)');
@@ -237,7 +255,7 @@ function buildCharts() {
         plugins: {
           legend: { display: false },
           tooltip: {
-            callbacks: { label: ctx => (ctx.raw / 1000).toFixed(0) + 'k' }
+            callbacks: { label: ctx => '₹' + Number(ctx.raw).toLocaleString('en-IN') }
           }
         },
         scales: {
@@ -245,7 +263,7 @@ function buildCharts() {
           y: {
             grid: { color: borderColor },
             border: { display: false },
-            ticks: { callback: v => (v / 1000) + 'k' }
+            ticks: { callback: v => (v >= 1000 ? (v / 1000) + 'k' : v) }
           }
         }
       }
@@ -255,13 +273,31 @@ function buildCharts() {
   /* ── Job Status Doughnut Chart ── */
   const sCtx = document.getElementById('statusChart');
   if (sCtx) {
+    if (statusChart) {
+      try { statusChart.destroy(); } catch (e) {}
+      statusChart = null;
+    }
+    if (typeof Chart.getChart === 'function') {
+      const existing = Chart.getChart(sCtx);
+      if (existing) existing.destroy();
+    }
+
     const ctx = sCtx.getContext('2d');
+    let statusValues = [0, 0, 0];
+    if (sCtx.dataset.values) {
+      try {
+        statusValues = JSON.parse(sCtx.dataset.values);
+      } catch (e) {
+        console.warn('Failed to parse status chart dataset', e);
+      }
+    }
+
     statusChart = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: ['Pending', 'In Progress', 'Done'],
+        labels: ['Pending', 'In Progress', 'Completed'],
         datasets: [{
-          data: [8, 11, 5],
+          data: statusValues,
           backgroundColor: ['#f59e0b', '#3b82f6', '#22c55e'],
           borderWidth: 2,
           borderColor: getColor('--surface')

@@ -7,6 +7,7 @@ from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.db.models import Sum, F
 from base.manager import SoftDeleteModel
+from base.utility import generate_unique_code
 from customer.models import Customer
 from vehicle.models import VehicleModel
 from inventory.models import Inventory
@@ -76,22 +77,12 @@ class JobCard(SoftDeleteModel):
 
     def create_job_card_number(self, save=True):
         """
-        Create a new job card number based on the object's primary key.
-
-        Args:
-            save (bool): Whether to save the job_card_number to the database.
-
-        Returns:
-            str: The newly created job card number (e.g., JC0001)
+        Generate and assign a unique job card number (e.g., JC0001).
         """
-        if not self.pk:
-            super(JobCard, self).save()
-
-        self.job_card_number = f"JC{self.pk:04d}"
-
-        if save:
-            super(JobCard, self).save(update_fields=["job_card_number"])
-
+        if not self.job_card_number:
+            self.job_card_number = generate_unique_code("JC", JobCard, "job_card_number", 4)
+            if save and self.pk:
+                super(JobCard, self).save(update_fields=["job_card_number"])
         return self.job_card_number
 
     def save(self, *args, **kwargs):
@@ -108,11 +99,9 @@ class JobCard(SoftDeleteModel):
                 pass
 
         with transaction.atomic():
-            if not self.pk and not self.job_card_number:
-                super().save(*args, **kwargs)
-                self.create_job_card_number(save=True)
-            else:
-                super().save(*args, **kwargs)
+            if not self.job_card_number:
+                self.job_card_number = generate_unique_code("JC", JobCard, "job_card_number", 4)
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.job_card_number} - {self.vehicle_number}"

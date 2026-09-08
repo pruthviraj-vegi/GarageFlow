@@ -31,7 +31,9 @@
 
       <!-- Search bar row — same pattern as main.html -->
       {% if jobcard.status != 'completed' and jobcard.status != 'cancelled' %}
+      {% if perms.jobcard.add_jobcarditem or perms.jobcard.change_jobcard %}
       <div class="page-actions" style="margin-bottom: 10px;">
+        {% if perms.jobcard.add_jobcarditem %}
         <div class="filters-row">
           <div class="inv-search-wrap" style="width:500px">
             <div class="search-box" style="width:500px">
@@ -41,6 +43,8 @@
             <div class="inv-search-dropdown" id="jc-inv-dropdown"></div>
           </div>
         </div>
+        {% endif %}
+        {% if perms.jobcard.change_jobcard %}
         <form method="post" action="{% url 'jobcard:submit' jobcard.pk %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to submit this Job Card and generate an invoice?');">
           {% csrf_token %}
           <button type="submit" class="btn btn-primary">
@@ -48,7 +52,9 @@
             Submit
           </button>
         </form>
+        {% endif %}
       </div>
+      {% endif %}
       {% endif %}
 
       <!-- 80/20 split -->
@@ -172,7 +178,7 @@
   /* ── Populate items table ── */
   function populateItems(data) {
     const tbody = document.getElementById("jc-items-body");
-    const isReadOnly = "{{ jobcard.status }}" === "completed" || "{{ jobcard.status }}" === "cancelled";
+    const isReadOnly = "{{ jobcard.status }}" === "completed" || "{{ jobcard.status }}" === "cancelled"{% if not perms.jobcard.change_jobcarditem %} || true{% endif %};
 
     if (data.items.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" class="info-secondary">No items added yet.</td></tr>';

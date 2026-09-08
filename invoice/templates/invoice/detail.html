@@ -10,10 +10,16 @@
     <h1 class="page-title">{{ title }}</h1>
     <p class="page-sub">View invoice details and line items</p>
   </div>
-  <div class="breadcrumb">
-    <a href="{% url 'invoice:list' %}">Invoices</a>
-    <i data-icon="chevronRight"></i>
-    <span>{{ title }}</span>
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <a href="{% url 'invoice:print_58mm' invoice.pk %}" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+      <i data-icon="printer"></i>
+      <span>Print (58mm)</span>
+    </a>
+    <div class="breadcrumb">
+      <a href="{% url 'invoice:list' %}">Invoices</a>
+      <i data-icon="chevronRight"></i>
+      <span>{{ title }}</span>
+    </div>
   </div>
 </div>
 
@@ -95,7 +101,11 @@
                 <span class="jc-info-label">Source</span>
                 <span class="jc-info-val">
                   {% if invoice.job_card %}
+                    {% if perms.jobcard.view_jobcard %}
                     <a href="{% url 'jobcard:detail' invoice.job_card.pk %}" class="recent-plate" style="text-decoration:none;">{{ invoice.job_card.job_card_number }}</a>
+                    {% else %}
+                    <span class="recent-plate">{{ invoice.job_card.job_card_number }}</span>
+                    {% endif %}
                   {% else %}
                     <span class="info-secondary">Counter Sale</span>
                   {% endif %}

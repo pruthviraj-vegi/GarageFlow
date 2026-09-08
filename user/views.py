@@ -14,7 +14,7 @@ User = get_user_model()
 @login_required
 def user_list(request):
     """List all users"""
-    users = User.objects.all().order_by("-date_joined")
+    users = User.objects.prefetch_related("groups").all().order_by("-date_joined")
     return render(request, "user/main.html", {"users": users})
 
 

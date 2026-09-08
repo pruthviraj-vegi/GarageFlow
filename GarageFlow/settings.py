@@ -14,6 +14,7 @@ from pathlib import Path
 from decouple import config
 import logging
 import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -61,9 +62,23 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Custom middleware for session tracking, inactivity logout, and login check
+    "base.middleware.InactivityLogoutMiddleware",
+    "base.middleware.SessionMetaMiddleware",
+    "base.middleware.CustomLoginRequiredMiddleware",
 ]
 
 ROOT_URLCONF = "GarageFlow.urls"
+
+# Exempt static/media files and login pages from login requirement
+LOGIN_EXEMPT_URLS = [
+    r"^static/.*$",
+    r"^media/.*$",
+    r"^login/.*$",
+    r"^api/.*$",
+]
+
+INACTIVITY_TIMEOUT_SECONDS = 3 * 60 * 60
 
 TEMPLATES = [
     {
@@ -107,11 +122,24 @@ DATABASES = {
     }
 }
 
+if "test" in sys.argv:
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = []  # Disabled — internal app, simple passwords allowed
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 6,
+        },
+    }
+]
 
 
 # Internationalization

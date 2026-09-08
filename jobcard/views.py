@@ -238,7 +238,7 @@ def jobcard_submit(request, pk):
         f"Job Card {jobcard.job_card_number} submitted "
         f"and Invoice {invoice.invoice_number} created successfully.",
     )
-    return redirect("jobcard:detail", pk=pk)
+    return redirect("invoice:detail", pk=invoice.pk)
 
 
 @login_required
@@ -292,6 +292,12 @@ def jobcard_add_item(request, pk):
         return JsonResponse({"error": "POST required"}, status=405)
 
     jobcard = get_object_or_404(JobCard, pk=pk)
+    if jobcard.status in [JobCard.Status.COMPLETED, JobCard.Status.CANCELLED]:
+        return JsonResponse(
+            {"error": f"Cannot modify items on a {jobcard.get_status_display()} Job Card."},
+            status=400,
+        )
+
     barcode = request.POST.get("barcode", "").strip()
 
     if not barcode:
@@ -343,6 +349,11 @@ def jobcard_delete_item(request, pk, item_pk):
         return JsonResponse({"error": "POST required"}, status=405)
 
     jobcard = get_object_or_404(JobCard, pk=pk)
+    if jobcard.status in [JobCard.Status.COMPLETED, JobCard.Status.CANCELLED]:
+        return JsonResponse(
+            {"error": f"Cannot modify items on a {jobcard.get_status_display()} Job Card."},
+            status=400,
+        )
 
     try:
         # pylint: disable=no-member
@@ -361,6 +372,12 @@ def jobcard_update_item_qty(request, pk, item_pk):
         return JsonResponse({"error": "POST required"}, status=405)
 
     jobcard = get_object_or_404(JobCard, pk=pk)
+    if jobcard.status in [JobCard.Status.COMPLETED, JobCard.Status.CANCELLED]:
+        return JsonResponse(
+            {"error": f"Cannot modify items on a {jobcard.get_status_display()} Job Card."},
+            status=400,
+        )
+
     try:
         # pylint: disable=no-member
         item = JobCardItem.objects.get(pk=item_pk, job_card=jobcard)
@@ -369,8 +386,11 @@ def jobcard_update_item_qty(request, pk, item_pk):
 
     try:
         new_qty = Decimal(request.POST.get("quantity", "0"))
-        if new_qty < 0:
-            return JsonResponse({"error": "Quantity cannot be negative."}, status=400)
+        if new_qty <= 0:
+            return JsonResponse(
+                {"error": "Quantity must be greater than zero. Delete the item to remove it."},
+                status=400,
+            )
     except InvalidOperation:
         return JsonResponse({"error": "Invalid quantity format."}, status=400)
 

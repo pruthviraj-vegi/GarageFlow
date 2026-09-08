@@ -123,3 +123,25 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context["title"] = f"Invoice {self.object.invoice_number}"
         return context
+
+
+@login_required
+def invoice_print_58mm(request, pk):
+    """58mm thermal receipt print view for invoice."""
+    invoice = get_object_or_404(
+        Invoice.objects.select_related(
+            "customer", "job_card__vehicle_model__make", "created_by"
+        ).prefetch_related("invoice_items__inventory"),
+        pk=pk,
+    )
+    items = invoice.invoice_items.all()
+    total_qty = sum(item.quantity for item in items)
+
+    context = {
+        "invoice": invoice,
+        "items": items,
+        "total_qty": total_qty,
+        "title": f"Print {invoice.invoice_number}",
+    }
+    return render(request, "invoice/print_58mm.html", context)
+

@@ -3,6 +3,7 @@ import re
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.contrib.auth.models import Group
 
 User = get_user_model()
 
@@ -74,6 +75,14 @@ class UserFormMixin:
 
 
 class CustomUserCreationForm(UserFormMixin, UserCreationForm):
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+        label="Roles / Groups",
+        help_text="Select one or more roles/groups for this user (e.g. Service Advisor, Inventory Manager, Cashier, Admin)",
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Add 'form-input' class to password fields inherited from UserCreationForm
@@ -87,7 +96,7 @@ class CustomUserCreationForm(UserFormMixin, UserCreationForm):
             "phone",
             "first_name",
             "last_name",
-            "role",
+            "groups",
             "email",
             "is_active",
             "is_staff",
@@ -109,10 +118,17 @@ class CustomUserCreationForm(UserFormMixin, UserCreationForm):
             "email": forms.EmailInput(
                 attrs={"class": "form-input", "placeholder": "Email (optional)"}
             ),
-            "role": forms.Select(attrs={"class": "form-select"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "is_staff": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+
+    def save(self, commit=True):
+        user = super().save(commit=commit)
+        if commit:
+            if user.groups.filter(name__in=["Admin", "Administrator"]).exists():
+                user.is_staff = True
+                user.save(update_fields=["is_staff"])
+        return user
 
 
 # ============================================
@@ -123,13 +139,21 @@ class CustomUserCreationForm(UserFormMixin, UserCreationForm):
 class CustomUserChangeForm(UserFormMixin, UserChangeForm):
     password = None  # Exclude password field from edit form
 
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+        label="Roles / Groups",
+        help_text="Select one or more roles/groups for this user",
+    )
+
     class Meta:
         model = User
         fields = (
             "phone",
             "first_name",
             "last_name",
-            "role",
+            "groups",
             "email",
             "is_active",
             "is_staff",
@@ -139,7 +163,14 @@ class CustomUserChangeForm(UserFormMixin, UserChangeForm):
             "first_name": forms.TextInput(attrs={"class": "form-input"}),
             "last_name": forms.TextInput(attrs={"class": "form-input"}),
             "email": forms.EmailInput(attrs={"class": "form-input"}),
-            "role": forms.Select(attrs={"class": "form-select"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "is_staff": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+
+    def save(self, commit=True):
+        user = super().save(commit=commit)
+        if commit:
+            if user.groups.filter(name__in=["Admin", "Administrator"]).exists():
+                user.is_staff = True
+                user.save(update_fields=["is_staff"])
+        return user

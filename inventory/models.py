@@ -1,6 +1,7 @@
 """Models for the inventory application."""
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from base.manager import SoftDeleteModel
@@ -143,28 +144,60 @@ class Inventory(SoftDeleteModel):
 
     def create_barcode(self, save=True):
         """
-        Auto-generate a barcode based on the object's primary key.
-        Only called when no barcode is provided from the frontend.
+        Create a new barcode based on the object's ID.
+        Format: 6 digits zero-padded + '3' suffix (matching My_Billing, e.g. 0000013).
+
+        Args:
+            save (bool): Whether to save the barcode to the database.
+                        If False, only sets the barcode on the instance.
 
         Returns:
             str: The newly created barcode
         """
+        # Ensure object has an ID (save if needed)
         if not self.pk:
-            super(Inventory, self).save()
+            super().save()
 
-        self.barcode = f"{self.pk:06d}3"
+        # Generate barcode: 6 digits with zero padding + suffix "3"
+        candidate = f"{self.id:06d}3"
+        # Check collision just in case a duplicate barcode was manually entered
+        manager = getattr(self.__class__, "all_objects", self.__class__.objects)
+        col_id = self.id
+        while manager.filter(barcode=candidate).exclude(pk=self.pk).exists():
+            col_id += 1
+            candidate = f"{col_id:06d}3"
 
+        self.barcode = candidate
+
+        # Save the barcode if requested
         if save:
-            super(Inventory, self).save(update_fields=["barcode"])
+            super().save(update_fields=["barcode"])
 
         return self.barcode
 
+    def clean(self):
+        super().clean()
+        # Validate barcode uniqueness
+        if self.barcode:
+            manager = getattr(self.__class__, "all_objects", self.__class__.objects)
+            existing = manager.filter(barcode=self.barcode)
+            if self.pk:
+                existing = existing.exclude(pk=self.pk)
+            if existing.exists():
+                raise ValidationError({"barcode": "Barcode must be unique."})
+
     def save(self, *args, **kwargs):
+        """Override save to generate barcode based on object ID if not provided."""
+        self.clean()
+
+        # If new record and no barcode, generate after getting ID
         if not self.pk and not self.barcode:
-            super(Inventory, self).save(*args, **kwargs)
-            self.create_barcode(save=True)
+            super().save(*args, **kwargs)  # First save to get ID
+            self.create_barcode(save=True)  # Generate and save barcode
         else:
-            super(Inventory, self).save(*args, **kwargs)
+            if not self.barcode:
+                self.create_barcode(save=False)
+            super().save(*args, **kwargs)
 
     @property
     def profit_margin(self):
@@ -180,11 +213,11 @@ class Inventory(SoftDeleteModel):
 
     @property
     def reserved_quantity(self):
-        """Calculate quantity reserved in pending job cards."""
+        """Calculate quantity reserved in pending and in-progress job cards."""
         # pylint: disable=no-member
-        result = self.job_card_usages.filter(job_card__status="pending").aggregate(
-            total=models.Sum("quantity")
-        )
+        result = self.job_card_usages.filter(
+            job_card__status__in=["pending", "in_progress"]
+        ).aggregate(total=models.Sum("quantity"))
         return result.get("total") or 0
 
     @property

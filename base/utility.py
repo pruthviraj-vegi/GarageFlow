@@ -100,3 +100,21 @@ def table_sorting(request, valid_sorts=None, default_sort="-id"):
         return [default_sort]
 
     return final_sorts
+
+
+def generate_unique_code(prefix, model_class, field_name, padding=4, suffix=""):
+    """
+    Generates a unique sequential identifier for a model record before saving.
+    Guarantees no blank strings are inserted into unique-constrained columns.
+    Examines all_objects (including soft-deleted) to prevent collision with soft-deleted rows.
+    """
+    manager = getattr(model_class, "all_objects", model_class.objects)
+    last_item = manager.order_by("-id").first()
+    next_num = (last_item.id + 1) if (last_item and last_item.id) else 1
+
+    candidate = f"{prefix}{next_num:0{padding}d}{suffix}"
+    while manager.filter(**{field_name: candidate}).exists():
+        next_num += 1
+        candidate = f"{prefix}{next_num:0{padding}d}{suffix}"
+
+    return candidate

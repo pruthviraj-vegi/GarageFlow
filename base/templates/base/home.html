@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}Dashboard{% endblock %}
 
@@ -8,7 +9,7 @@
 <div class="page-header">
   <div>
     <h1 class="page-title" id="pageTitle">Dashboard</h1>
-    <p class="page-sub" id="pageSub">Good morning — Tuesday, 17 Feb 2026</p>
+    <p class="page-sub" id="pageSub">Workshop Overview — {{ today_display }}</p>
   </div>
   <div class="breadcrumb">
     GarageOS <i data-icon="chevronRight"></i> <span>Dashboard</span>
@@ -19,101 +20,182 @@
 <div class="content">
 
   <!-- ══ DASHBOARD ══ -->
-  <!-- <div class="page active" id="page-dashboard">
+  <div class="page active" id="page-dashboard">
     <div class="kpi-grid">
+      <!-- Revenue This Month -->
       <div class="kpi-card orange">
         <div class="kpi-content">
           <div class="kpi-label">Revenue This Month</div>
-          <div class="kpi-change up"><i data-icon="arrowUp"></i>+12.4% vs last month</div>
+          <div class="kpi-change {% if revenue_growth >= 0 %}up{% else %}down{% endif %}">
+            <i data-icon="{% if revenue_growth >= 0 %}arrowUp{% else %}arrowDown{% endif %}"></i>
+            {% if revenue_growth >= 0 %}+{% endif %}{{ revenue_growth }}% vs last month
+          </div>
         </div>
         <div class="kpi-right">
           <div class="kpi-icon"><i data-icon="revenue"></i></div>
-          <div class="kpi-value">₹4.8L</div>
+          <div class="kpi-value">₹{{ revenue_this_month|currency_nonDecimal }}</div>
         </div>
       </div>
+
+      <!-- Job Cards Today -->
       <div class="kpi-card blue">
         <div class="kpi-content">
           <div class="kpi-label">Job Cards Today</div>
-          <div class="kpi-change up"><i data-icon="arrowUp"></i>+3 vs yesterday</div>
+          <div class="kpi-change {% if jobcards_today_diff >= 0 %}up{% else %}down{% endif %}">
+            <i data-icon="{% if jobcards_today_diff >= 0 %}arrowUp{% else %}arrowDown{% endif %}"></i>
+            {% if jobcards_today_diff >= 0 %}+{% endif %}{{ jobcards_today_diff }} vs yesterday
+          </div>
         </div>
         <div class="kpi-right">
           <div class="kpi-icon"><i data-icon="jobcard"></i></div>
-          <div class="kpi-value">24</div>
+          <div class="kpi-value">{{ jobcards_today }}</div>
         </div>
       </div>
+
+      <!-- Vehicles In Workshop -->
       <div class="kpi-card green">
         <div class="kpi-content">
           <div class="kpi-label">Vehicles In Workshop</div>
-          <div class="kpi-change down"><i data-icon="arrowDown"></i>−2 from morning</div>
+          <div class="kpi-change">Active in service bays</div>
         </div>
         <div class="kpi-right">
           <div class="kpi-icon"><i data-icon="vehicles"></i></div>
-          <div class="kpi-value">11</div>
+          <div class="kpi-value">{{ vehicles_in_workshop }}</div>
         </div>
       </div>
+
+      <!-- Pending Jobs -->
       <div class="kpi-card amber">
         <div class="kpi-content">
           <div class="kpi-label">Pending Jobs</div>
-          <div class="kpi-change down"><i data-icon="arrowDown"></i>+2 need attention</div>
+          <div class="kpi-change {% if pending_jobs > 0 %}down{% else %}up{% endif %}">
+            <i data-icon="{% if pending_jobs > 0 %}arrowDown{% else %}check{% endif %}"></i>
+            {{ pending_jobs }} awaiting service
+          </div>
         </div>
         <div class="kpi-right">
           <div class="kpi-icon"><i data-icon="pending"></i></div>
-          <div class="kpi-value">8</div>
+          <div class="kpi-value">{{ pending_jobs }}</div>
         </div>
       </div>
+
+      <!-- Completed This Week -->
       <div class="kpi-card green">
         <div class="kpi-content">
           <div class="kpi-label">Completed This Week</div>
-          <div class="kpi-change up"><i data-icon="arrowUp"></i>+18% vs last week</div>
+          <div class="kpi-change up">
+            <i data-icon="arrowUp"></i>Past 7 days
+          </div>
         </div>
         <div class="kpi-right">
           <div class="kpi-icon"><i data-icon="check"></i></div>
-          <div class="kpi-value">63</div>
+          <div class="kpi-value">{{ completed_this_week }}</div>
         </div>
       </div>
     </div>
 
+    <!-- Charts -->
     <div class="chart-grid">
       <div class="card">
         <div class="card-header">
-          <div><div class="card-title">Revenue Overview</div><div class="card-sub">Monthly revenue — FY 2025–26</div></div>
-          <select class="filter-select" style="height:28px;font-size:12px"><option>Last 12 months</option><option>Last 6 months</option></select>
+          <div>
+            <div class="card-title">Revenue Overview</div>
+            <div class="card-sub">Monthly billed revenue (Past 6 Months)</div>
+          </div>
         </div>
-        <div class="card-body"><div class="chart-wrap"><canvas id="revenueChart"></canvas></div></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><div><div class="card-title">Job Status Mix</div><div class="card-sub">Current open jobs</div></div></div>
         <div class="card-body">
-          <div class="chart-wrap" style="height:180px"><canvas id="statusChart"></canvas></div>
+          <div class="chart-wrap">
+            <canvas id="revenueChart" data-labels="{{ revenue_chart_labels }}" data-values="{{ revenue_chart_data }}"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Job Status Mix</div>
+            <div class="card-sub">Current distribution of jobs</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap" style="height:180px">
+            <canvas id="statusChart" data-values="{{ status_chart_data }}"></canvas>
+          </div>
           <div style="display:flex;gap:12px;justify-content:center;margin-top:12px;flex-wrap:wrap">
-            <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:2px;background:#f59e0b;display:inline-block"></span>Pending</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:2px;background:#3b82f6;display:inline-block"></span>In Progress</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:2px;background:#22c55e;display:inline-block"></span>Done</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)">
+              <span style="width:10px;height:10px;border-radius:2px;background:#f59e0b;display:inline-block"></span>Pending ({{ pending_jobs }})
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)">
+              <span style="width:10px;height:10px;border-radius:2px;background:#3b82f6;display:inline-block"></span>In Progress ({{ in_progress_jobs }})
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)">
+              <span style="width:10px;height:10px;border-radius:2px;background:#22c55e;display:inline-block"></span>Completed ({{ completed_jobs }})
+            </div>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Recent Job Cards Table -->
+    {% if perms.jobcard.view_jobcard %}
     <div class="card">
       <div class="card-header">
-        <div><div class="card-title">Recent Job Cards</div><div class="card-sub">Latest activity today</div></div>
-        <button class="btn btn-secondary btn-sm" onclick="navigate(document.querySelector('[data-page=jobcard]'))">View all</button>
+        <div>
+          <div class="card-title">Recent Job Cards</div>
+          <div class="card-sub">Latest activity in the garage</div>
+        </div>
+        <a href="{% url 'jobcard:list' %}" class="btn btn-secondary btn-sm">View all</a>
       </div>
       <div class="card-body" style="padding:0">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Job ID</th><th>Vehicle</th><th>Plate No.</th><th>Customer</th><th>Status</th><th>Time In</th><th></th></tr></thead>
+            <thead>
+              <tr>
+                <th>Job ID</th>
+                <th>Vehicle Model</th>
+                <th>Plate No.</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th></th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td class="td-mono">#JC-2024</td><td>Maruti Swift VXi</td><td><span class="recent-plate">TN09AB1234</span></td><td>Ramesh Babu</td><td><span class="badge badge-progress">In Progress</span></td><td style="color:var(--text3)">09:14 AM</td><td><button class="action-btn" onclick="openJobCard()"><i data-icon="externalLink"></i></button></td></tr>
-              <tr><td class="td-mono">#JC-2023</td><td>Honda City ZX</td><td><span class="recent-plate">KA03CD5678</span></td><td>Priya Menon</td><td><span class="badge badge-pending">Pending</span></td><td style="color:var(--text3)">08:50 AM</td><td><button class="action-btn" onclick="openJobCard()"><i data-icon="externalLink"></i></button></td></tr>
-              <tr><td class="td-mono">#JC-2022</td><td>Hyundai Creta SX</td><td><span class="recent-plate">MH12EF9012</span></td><td>Vikram Singh</td><td><span class="badge badge-done">Done</span></td><td style="color:var(--text3)">08:20 AM</td><td><button class="action-btn" onclick="openJobCard()"><i data-icon="externalLink"></i></button></td></tr>
-              <tr><td class="td-mono">#JC-2021</td><td>Tata Nexon EV</td><td><span class="recent-plate">DL4CAH3456</span></td><td>Anita Reddy</td><td><span class="badge badge-progress">In Progress</span></td><td style="color:var(--text3)">07:55 AM</td><td><button class="action-btn" onclick="openJobCard()"><i data-icon="externalLink"></i></button></td></tr>
-              <tr><td class="td-mono">#JC-2020</td><td>Mahindra Scorpio-N</td><td><span class="recent-plate">AP28GH7890</span></td><td>Suresh Nair</td><td><span class="badge badge-done">Done</span></td><td style="color:var(--text3)">07:30 AM</td><td><button class="action-btn" onclick="openJobCard()"><i data-icon="externalLink"></i></button></td></tr>
+              {% for jc in recent_jobcards %}
+              <tr>
+                <td class="td-mono">
+                  <a href="{% url 'jobcard:detail' jc.pk %}" style="text-decoration:none; color:var(--accent); font-weight:600;">
+                    {{ jc.job_card_number }}
+                  </a>
+                </td>
+                <td>{{ jc.vehicle_model|default:"-" }}</td>
+                <td><span class="recent-plate">{{ jc.vehicle_number }}</span></td>
+                <td>{{ jc.customer.name }}</td>
+                <td>
+                  <span class="badge badge-{% if jc.status == 'pending' %}pending{% elif jc.status == 'in_progress' %}progress{% elif jc.status == 'completed' %}done{% else %}cancelled{% endif %}">
+                    {{ jc.get_status_display }}
+                  </span>
+                </td>
+                <td style="color:var(--text3)">{{ jc.created_at|date:"d M, h:i A" }}</td>
+                <td>
+                  <a href="{% url 'jobcard:detail' jc.pk %}" class="action-btn" title="View Job Card">
+                    <i data-icon="externalLink"></i>
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" class="info-secondary text-center" style="padding: 24px;">
+                  No job cards created yet.{% if perms.jobcard.add_jobcard %} Click <a href="{% url 'jobcard:add' %}" style="color:var(--accent);">here</a> to create the first one.{% endif %}
+                </td>
+              </tr>
+              {% endfor %}
             </tbody>
           </table>
         </div>
       </div>
     </div>
-  </div> -->
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

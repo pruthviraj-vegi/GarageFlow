@@ -1,0 +1,314 @@
+/* ========================================================
+   GARAGEFLOW — 58MM THERMAL PRINTER RECEIPT STYLES
+   Optimized for 58mm (2-inch) thermal roll paper
+   ======================================================== */
+
+@page {
+    size: 58mm auto;
+    margin: 0;
+}
+
+@media print {
+    @page {
+        size: 58mm auto;
+        margin: 0;
+    }
+
+    body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        min-height: auto !important;
+        display: block !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .container {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 1mm !important;
+        width: 58mm !important;
+        max-width: 58mm !important;
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 8px;
+    line-height: 1.25;
+    color: #000000;
+    background: #e2e8f0;
+    margin: 0;
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Screen toolbar */
+.print-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    background: #ffffff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.print-btn {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.print-btn:hover {
+    background: #1d4ed8;
+}
+
+.back-btn {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.back-btn:hover {
+    background: #e2e8f0;
+}
+
+/* Receipt container */
+.container {
+    width: 58mm;
+    max-width: 58mm;
+    background: #ffffff;
+    padding: 2mm 1.5mm;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-radius: 2px;
+}
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+.font-bold { font-weight: bold; }
+.font-semibold { font-weight: 600; }
+
+.divider-dashed {
+    border-top: 1px dashed #000000;
+    margin: 1.2mm 0;
+}
+
+.divider-solid {
+    border-top: 1px solid #000000;
+    margin: 1.2mm 0;
+}
+
+.divider-double {
+    border-top: 2px double #000000;
+    margin: 1.2mm 0;
+}
+
+/* Header */
+.shop-header {
+    text-align: center;
+    padding-bottom: 0.8mm;
+}
+
+.shop-name {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+}
+
+.shop-sub {
+    font-size: 7px;
+    margin-top: 0.5px;
+    color: #222222;
+}
+
+.receipt-badge {
+    font-size: 8px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-top: 1mm;
+    letter-spacing: 0.5px;
+}
+
+/* Meta rows */
+.meta-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6mm;
+}
+
+.meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 7px;
+    line-height: 1.25;
+}
+
+.meta-label {
+    color: #000000;
+}
+
+.meta-val {
+    font-weight: bold;
+    text-align: right;
+    max-width: 32mm;
+    word-break: break-word;
+}
+
+/* Items Table */
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 7px;
+    margin: 0.8mm 0;
+}
+
+.items-table thead th {
+    border-top: 1px solid #000000;
+    border-bottom: 1px solid #000000;
+    padding: 0.8mm 0;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 6.5px;
+    letter-spacing: 0.2px;
+}
+
+.items-table tbody td {
+    padding: 0.8mm 0;
+    vertical-align: top;
+    font-size: 7px;
+    border-bottom: 0.5px dotted #cccccc;
+}
+
+.items-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.col-item {
+    width: 48%;
+    text-align: left;
+}
+
+.col-qty {
+    width: 14%;
+    text-align: center;
+}
+
+.col-rate {
+    width: 18%;
+    text-align: right;
+}
+
+.col-amt {
+    width: 20%;
+    text-align: right;
+}
+
+.item-desc {
+    word-break: break-word;
+    line-height: 1.15;
+}
+
+.item-sub {
+    font-size: 6px;
+    color: #444444;
+}
+
+/* Total Section */
+.total-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5mm;
+    margin-top: 0.5mm;
+}
+
+.grand-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9.5px;
+    font-weight: bold;
+    padding: 1.2mm 0;
+    border-top: 1px solid #000000;
+    border-bottom: 2px solid #000000;
+    margin-top: 0.8mm;
+}
+
+/* Notes */
+.notes-section {
+    margin-top: 1mm;
+    font-size: 6.5px;
+    padding: 1mm;
+    border: 0.5px dashed #666666;
+    word-break: break-word;
+}
+
+/* Footer */
+.footer-content {
+    text-align: center;
+    margin-top: 1.5mm;
+    padding-top: 1mm;
+}
+
+.thank-you {
+    font-size: 8px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 0.5mm;
+}
+
+.footer-note {
+    font-size: 6px;
+    color: #333333;
+    line-height: 1.2;
+}
+
+.terms-section {
+    font-size: 5.5px;
+    color: #444444;
+    line-height: 1.2;
+    margin-top: 1mm;
+    text-align: left;
+}

@@ -54,6 +54,9 @@
     <!-- Actions -->
     <td>
     <div class="action-buttons">
+        <a href="{% url 'inventory:print_barcode' item.pk %}" target="_blank" class="action-btn" title="Print Barcode">
+        <i data-icon="printer"></i>
+        </a>
         <a href="{% url 'inventory:detail' item.pk %}" class="action-btn" title="View Details">
         <i data-icon="eye"></i>
         </a>

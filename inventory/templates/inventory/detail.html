@@ -21,9 +21,12 @@
 <div class="content">
   <div class="page active" id="page-in-detail">
 
-    <div class="page-actions" style="margin-bottom: 15px; justify-content: flex-end;">
+    <div class="page-actions" style="margin-bottom: 15px; justify-content: flex-end; display: flex; gap: 10px;">
+      <a href="{% url 'inventory:print_barcode' item.pk %}" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+        <i data-icon="printer"></i> Print Barcode
+      </a>
       {% if perms.inventory.change_inventory %}
-      <a href="{% url 'inventory:edit' item.pk %}" class="btn btn-secondary" style="margin-right: 10px;">
+      <a href="{% url 'inventory:edit' item.pk %}" class="btn btn-secondary">
         <i data-icon="edit"></i> Edit Part
       </a>
       <button class="btn btn-primary" onclick="openStockInModal()">
@@ -100,7 +103,14 @@
               </div>
               <div class="jc-info-item">
                 <span class="jc-info-label">Barcode</span>
-                <span class="jc-info-val td-mono">{{ item.barcode|default:"-" }}</span>
+                <span class="jc-info-val td-mono" style="display:inline-flex;align-items:center;gap:8px;">
+                  {{ item.barcode|default:"-" }}
+                  {% if item.barcode %}
+                  <a href="{% url 'inventory:print_barcode' item.pk %}" target="_blank" title="Print Barcode" style="color:var(--primary);text-decoration:none;display:inline-flex;align-items:center;">
+                    <i data-icon="printer"></i>
+                  </a>
+                  {% endif %}
+                </span>
               </div>
               <div class="jc-info-item">
                 <span class="jc-info-label">Category</span>
@@ -114,11 +124,11 @@
               </div>
               <div class="divider"></div>
               <div class="jc-info-item">
-                <span class="jc-info-label">Cost Price</span>
+                <span class="jc-info-label">Cost</span>
                 <span class="jc-info-val td-mono">{{ item.cost_price }}</span>
               </div>
               <div class="jc-info-item">
-                <span class="jc-info-label">Selling Price</span>
+                <span class="jc-info-label">MRP</span>
                 <span class="jc-info-val td-mono">{{ item.selling_price }}</span>
               </div>
               <div class="jc-info-item">
@@ -189,14 +199,14 @@
         
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label" for="{{ stock_in_form.cost_price.id_for_label }}">New Cost Price</label>
+            <label class="form-label" for="{{ stock_in_form.cost_price.id_for_label }}">Cost</label>
             {{ stock_in_form.cost_price }}
             {% if stock_in_form.cost_price.errors %}
             <div class="form-error">{{ stock_in_form.cost_price.errors|join:", " }}</div>
             {% endif %}
           </div>
           <div class="form-group">
-            <label class="form-label" for="{{ stock_in_form.selling_price.id_for_label }}">New Selling Price</label>
+            <label class="form-label" for="{{ stock_in_form.selling_price.id_for_label }}">MRP</label>
             {{ stock_in_form.selling_price }}
             {% if stock_in_form.selling_price.errors %}
             <div class="form-error">{{ stock_in_form.selling_price.errors|join:", " }}</div>

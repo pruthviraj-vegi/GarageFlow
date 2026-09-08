@@ -108,25 +108,37 @@
 
             <!-- Role & Permissions -->
             <div class="form-section">
-              <div class="form-section-title">Role & Permissions</div>
+              <div class="form-section-title">Roles & Access Groups</div>
               <div class="form-grid">
-                <div class="form-group">
-                  <label class="form-label" for="{{ form.role.id_for_label }}">
-                    {{ form.role.label }} <span>*</span>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label" style="margin-bottom: 8px;">
+                    Assigned Groups / Roles
                   </label>
-                  {{ form.role }}
-                  {% if form.role.help_text or form.role.errors %}
+                  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; background: var(--bg-alt, #f8fafc); padding: 12px 16px; border-radius: 6px; border: 1px solid var(--border);">
+                    {% for choice in form.groups %}
+                    <div class="form-check-row" style="margin: 0;">
+                      {{ choice.tag }}
+                      <label for="{{ choice.id_for_label }}" class="form-check-label" style="cursor: pointer; font-weight: 500;">
+                        {{ choice.choice_label }}
+                      </label>
+                    </div>
+                    {% empty %}
+                    <div class="form-hint">No groups created yet. Run <code>python manage.py setup_groups</code> to initialize standard roles.</div>
+                    {% endfor %}
+                  </div>
+                  {% if form.groups.help_text or form.groups.errors %}
                   <div class="form-feedback">
-                    {% if form.role.errors %}
-                    <div class="form-error">{{ form.role.errors }}</div>
+                    {% if form.groups.errors %}
+                    <div class="form-error">{{ form.groups.errors }}</div>
                     {% else %}
-                    <div class="form-hint">{{ form.role.help_text }}</div>
+                    <div class="form-hint">{{ form.groups.help_text }}</div>
                     {% endif %}
                   </div>
                   {% endif %}
                 </div>
+
                 <div class="form-group">
-                  <label class="form-label">Status & Access</label>
+                  <label class="form-label">Status & System Access</label>
                   <div class="form-check-row">
                     {{ form.is_active }}
                     <label for="{{ form.is_active.id_for_label }}" class="form-check-label">{{ form.is_active.label }}</label>

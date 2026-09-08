@@ -188,10 +188,19 @@
               </div>
             </div>
 
-            <!-- Pricing -->
+            <!-- Stock & Pricing -->
             <div class="form-section">
-              <div class="form-section-title">Pricing</div>
+              <div class="form-section-title">Stock &amp; Pricing</div>
               <div class="form-grid cols-4">
+                <div class="form-group">
+                  <label class="form-label" for="{{ form.quantity.id_for_label }}">
+                    {{ form.quantity.label }} <span>*</span>
+                  </label>
+                  {{ form.quantity }}
+                  {% if form.quantity.errors %}
+                  <div class="form-feedback"><div class="form-error">{{ form.quantity.errors }}</div></div>
+                  {% endif %}
+                </div>
                 <div class="form-group">
                   <label class="form-label" for="{{ form.cost_price.id_for_label }}">
                     {{ form.cost_price.label }} <span>*</span>
@@ -208,15 +217,6 @@
                   {{ form.selling_price }}
                   {% if form.selling_price.errors %}
                   <div class="form-feedback"><div class="form-error">{{ form.selling_price.errors }}</div></div>
-                  {% endif %}
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="{{ form.quantity.id_for_label }}">
-                    {{ form.quantity.label }} <span>*</span>
-                  </label>
-                  {{ form.quantity }}
-                  {% if form.quantity.errors %}
-                  <div class="form-feedback"><div class="form-error">{{ form.quantity.errors }}</div></div>
                   {% endif %}
                 </div>
                 <div class="form-group">

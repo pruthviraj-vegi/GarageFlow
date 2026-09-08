@@ -5,7 +5,7 @@ from django.contrib.auth.models import (
 )
 from django.db import models
 from django.utils import timezone
-from base.utility import phone_regex
+from base.utility import phone_regex, generate_unique_code
 
 
 # ============================================
@@ -36,7 +36,6 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
-        extra_fields.setdefault("role", "admin")
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True.")
@@ -52,12 +51,7 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    """Custom User model with phone-based authentication and simplified roles"""
-
-    ROLE_CHOICES = [
-        ("admin", "Administrator"),
-        ("staff", "Staff"),
-    ]
+    """Custom User model with phone-based authentication and group-based permissions"""
 
     # Authentication - Phone number is the primary identifier
     phone = models.CharField(
@@ -74,9 +68,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     # Email is optional
     email = models.EmailField(blank=True, default="", verbose_name="Email Address")
-
-    # Role & Permissions
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="staff")
 
     # Employee Details
     employee_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
@@ -104,7 +95,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ordering = ["-date_joined"]
         indexes = [
             models.Index(fields=["employee_id"]),
-            models.Index(fields=["role"]),
+        ]
+        permissions = [
+            ("view_dashboard", "Can view dashboard"),
         ]
 
     def __str__(self):
@@ -121,54 +114,48 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     @property
     def is_admin(self):
         """Check if user is an administrator"""
-        return self.role == "admin" or self.is_superuser
+        if self.is_superuser:
+            return True
+        if self.pk and self.groups.filter(name__in=["Admin", "Administrator"]).exists():
+            return True
+        return False
 
     @property
-    def can_manage_inventory(self):
-        """Check if user can manage inventory - admin only"""
-        return self.role == "admin" or self.is_superuser
+    def primary_role(self):
+        """Return primary group name for display"""
+        if self.is_superuser:
+            return "Administrator"
+        if self.pk:
+            first_group = self.groups.first()
+            if first_group:
+                return first_group.name
+        return "Staff"
 
     @property
-    def can_handle_payments(self):
-        """Check if user can handle payments - both admin and staff"""
-        return self.is_active
-
-    @property
-    def can_create_job_cards(self):
-        """Check if user can create job cards - both admin and staff"""
-        return self.is_active
+    def all_roles(self):
+        """Return all assigned groups as list of strings"""
+        if self.pk:
+            group_names = list(self.groups.values_list("name", flat=True))
+            if group_names:
+                return group_names
+        if self.is_superuser:
+            return ["Administrator"]
+        return ["Staff"]
 
     def create_employee_id(self, save=True):
         """
-        Create a new employee ID based on the object's primary key.
-        If an employee_id already exists, it will be replaced.
-
-        Args:
-            save (bool): Whether to save the employee_id to the database.
-                        If False, only sets it on the instance.
-
-        Returns:
-            str: The newly created employee ID (e.g., EMP0001)
+        Generate and assign a unique employee ID (e.g., EMP0001).
         """
-        # Ensure object has a PK (save if needed)
-        if not self.pk:
-            super(CustomUser, self).save()
-
-        # Generate employee_id from PK: "EMP" + 4-digit zero-padded ID
-        self.employee_id = f"EMP{self.pk:04d}"
-
-        if save:
-            super(CustomUser, self).save(update_fields=["employee_id"])
-
+        if not self.employee_id:
+            self.employee_id = generate_unique_code("EMP", CustomUser, "employee_id", 4)
+            if save and self.pk:
+                super(CustomUser, self).save(update_fields=["employee_id"])
         return self.employee_id
 
     def save(self, *args, **kwargs):
-        if not self.pk and not self.employee_id:
-            # New record without employee_id: save first to get PK, then generate
-            super().save(*args, **kwargs)
-            self.create_employee_id(save=True)
-        else:
-            super().save(*args, **kwargs)
+        if not self.employee_id:
+            self.employee_id = generate_unique_code("EMP", CustomUser, "employee_id", 4)
+        super().save(*args, **kwargs)
 
 
 # # ============================================

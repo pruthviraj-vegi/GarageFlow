@@ -6,14 +6,17 @@
   <nav class="topbar-nav">
 
     <!-- Dashboard -->
+    {% if perms.user.view_dashboard or user.is_admin or user.is_staff or user.is_superuser %}
     <div class="nav-item-wrap" id="wrap-dashboard">
     <a href="{% url 'base:home' %}" class="nav-item {% if request.resolver_match.namespace == 'base' %}active{% endif %}" style="text-decoration: none;">
       <i data-icon="dashboard"></i>
       <span>Dashboard</span>
     </a>
     </div>
+    {% endif %}
 
     <!-- Job Cards -->
+    {% if perms.jobcard.view_jobcard %}
     <div class="nav-item-wrap" id="wrap-jobcards">
       <div class="nav-item {% if request.resolver_match.namespace == 'jobcard' %}active{% endif %}">
         <i data-icon="jobcard"></i>
@@ -22,11 +25,15 @@
       </div>
       <div class="nav-dropdown">
         <a href="{% url 'jobcard:list' %}" class="nav-sub-item">All Job Cards</a>
+        {% if perms.jobcard.add_jobcard %}
         <a href="{% url 'jobcard:add' %}" class="nav-sub-item">Add Job Card</a>
+        {% endif %}
       </div>
     </div>
+    {% endif %}
 
     <!-- Customers (mapped to 'members' icon) -->
+    {% if perms.customer.view_customer %}
     <div class="nav-item-wrap" id="wrap-customers">
       <div class="nav-item {% if request.resolver_match.namespace == 'customer' %}active{% endif %}">
         <i data-icon="members"></i>
@@ -35,11 +42,15 @@
       </div>
       <div class="nav-dropdown">
         <a href="{% url 'customer:list' %}" class="nav-sub-item">All Customers</a>
+        {% if perms.customer.add_customer %}
         <a href="{% url 'customer:add' %}" class="nav-sub-item">Add Customer</a>
+        {% endif %}
       </div>
     </div>
+    {% endif %}
 
     <!-- Vehicles -->
+    {% if perms.vehicle.view_vehiclemodel %}
     <div class="nav-item-wrap" id="wrap-vehicles">
       <div class="nav-item {% if request.resolver_match.namespace == 'vehicle' %}active{% endif %}">
         <i data-icon="vehicles"></i>
@@ -48,13 +59,19 @@
       </div>
       <div class="nav-dropdown">
         <a href="{% url 'vehicle:list' %}" class="nav-sub-item">All Vehicles</a>
+        {% if perms.vehicle.add_vehiclemodel %}
         <a href="{% url 'vehicle:add' %}" class="nav-sub-item">Add Vehicle</a>
+        {% endif %}
+        {% if perms.vehicle.view_vehiclemake %}
         <div style="height:1px; background:var(--border); margin:4px 0"></div>
         <a href="{% url 'vehicle:make-list' %}" class="nav-sub-item">Vehicle Makes</a>
+        {% endif %}
       </div>
     </div>
+    {% endif %}
 
     <!-- Inventory -->
+    {% if perms.inventory.view_inventory %}
     <div class="nav-item-wrap" id="wrap-inventory">
       <div class="nav-item {% if request.resolver_match.namespace == 'inventory' %}active{% endif %}">
         <i data-icon="inventory"></i>
@@ -63,14 +80,24 @@
       </div>
       <div class="nav-dropdown">
         <a href="{% url 'inventory:list' %}" class="nav-sub-item">All Items</a>
+        {% if perms.inventory.add_inventory %}
         <a href="{% url 'inventory:add' %}" class="nav-sub-item">Add Item</a>
+        {% endif %}
+        {% if perms.inventory.view_category or perms.inventory.view_uom %}
         <div style="height:1px; background:var(--border); margin:4px 0"></div>
+        {% endif %}
+        {% if perms.inventory.view_category %}
         <a href="{% url 'inventory:category_list' %}" class="nav-sub-item">Categories</a>
+        {% endif %}
+        {% if perms.inventory.view_uom %}
         <a href="{% url 'inventory:uom_list' %}" class="nav-sub-item">Units of Measure</a>
+        {% endif %}
       </div>
     </div>
+    {% endif %}
 
     <!-- Invoices -->
+    {% if perms.invoice.view_invoice %}
     <div class="nav-item-wrap" id="wrap-invoices">
       <div class="nav-item {% if request.resolver_match.namespace == 'invoice' %}active{% endif %}">
         <i data-icon="revenue"></i>
@@ -79,11 +106,15 @@
       </div>
       <div class="nav-dropdown">
         <a href="{% url 'invoice:list' %}" class="nav-sub-item">All Invoices</a>
+        {% if perms.invoice.add_invoice %}
         <a href="{% url 'invoice:add' %}" class="nav-sub-item">Add Invoice</a>
+        {% endif %}
       </div>
     </div>
+    {% endif %}
 
     <!-- Users -->
+    {% if perms.user.view_customuser %}
     <div class="nav-item-wrap" id="wrap-users">
       <div class="nav-item {% if request.resolver_match.namespace == 'user' %}active{% endif %}">
         <i data-icon="users"></i>
@@ -92,9 +123,12 @@
       </div>
       <div class="nav-dropdown">
         <a href="{% url 'user:list' %}" class="nav-sub-item">All Users</a>
+        {% if perms.user.add_customuser %}
         <a href="{% url 'user:add' %}" class="nav-sub-item">Add User</a>
+        {% endif %}
       </div>
     </div>
+    {% endif %}
 
   </nav>
 </div>

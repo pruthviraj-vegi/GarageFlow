@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from base.manager import SoftDeleteModel
+from base.utility import generate_unique_code
 from customer.models import Customer
 from jobcard.models import JobCard
 from inventory.models import Inventory
@@ -55,31 +56,19 @@ class Invoice(SoftDeleteModel):
 
     def create_invoice_number(self, save=True):
         """
-        Create a new invoice number based on the object's primary key.
-
-        Args:
-            save (bool): Whether to save the invoice_number to the database.
-
-        Returns:
-            str: The newly created invoice number (e.g., INV0001)
+        Generate and assign a unique invoice number (e.g., INV0001).
         """
-        if not self.pk:
-            super(Invoice, self).save()
-
-        self.invoice_number = f"INV{self.pk:04d}"
-
-        if save:
-            super(Invoice, self).save(update_fields=["invoice_number"])
-
+        if not self.invoice_number:
+            self.invoice_number = generate_unique_code("INV", Invoice, "invoice_number", 4)
+            if save and self.pk:
+                super(Invoice, self).save(update_fields=["invoice_number"])
         return self.invoice_number
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
-            if not self.pk and not self.invoice_number:
-                super().save(*args, **kwargs)
-                self.create_invoice_number(save=True)
-            else:
-                super().save(*args, **kwargs)
+            if not self.invoice_number:
+                self.invoice_number = generate_unique_code("INV", Invoice, "invoice_number", 4)
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.invoice_number} - {self.customer.name}"

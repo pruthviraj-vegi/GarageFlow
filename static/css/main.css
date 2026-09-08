@@ -923,6 +923,13 @@ tbody td:first-child {
 .badge-receptionist::before {
   background: var(--green);
 }
+.badge-group {
+  background: var(--blue-lt);
+  color: var(--blue);
+}
+.badge-group::before {
+  background: var(--blue);
+}
 .badge-low {
   background: var(--red-lt);
   color: var(--red);

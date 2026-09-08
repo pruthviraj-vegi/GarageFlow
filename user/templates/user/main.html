@@ -82,17 +82,26 @@
               <td class="td-mono">{{ u.phone|default:"-" }}</td>
               <!-- Email -->
               <td class="info-secondary">{{ u.email|default:"-" }}</td>
-              <!-- Role -->
+              <!-- Role / Groups -->
               <td>
-                {% if u.role == 'admin' or u.is_superuser %}
-                  <span class="badge badge-admin">Admin</span>
-                {% elif u.role == 'mechanic' %}
-                  <span class="badge badge-mechanic">Mechanic</span>
-                {% elif u.role == 'receptionist' %}
-                  <span class="badge badge-receptionist">Receptionist</span>
-                {% else %}
-                  <span class="badge badge-inactive">Staff</span>
+                {% if u.is_superuser %}
+                  <span class="badge badge-admin">Superuser</span>
                 {% endif %}
+                {% for g in u.groups.all %}
+                  {% if g.name == 'Administrator' or g.name == 'Admin' %}
+                    <span class="badge badge-admin">{{ g.name }}</span>
+                  {% elif g.name == 'Technician' or g.name == 'Mechanic' %}
+                    <span class="badge badge-mechanic">{{ g.name }}</span>
+                  {% elif g.name == 'Cashier' or g.name == 'Receptionist' %}
+                    <span class="badge badge-receptionist">{{ g.name }}</span>
+                  {% else %}
+                    <span class="badge badge-group">{{ g.name }}</span>
+                  {% endif %}
+                {% empty %}
+                  {% if not u.is_superuser %}
+                    <span class="badge badge-inactive">Staff</span>
+                  {% endif %}
+                {% endfor %}
               </td>
               <!-- Status -->
               <td>

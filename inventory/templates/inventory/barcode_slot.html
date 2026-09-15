@@ -3,16 +3,16 @@
 <div class="slot">
   <div class="data_section">
     <div class="text_section">
-      <div class="shop-name">GarageFlow</div>
+      <div class="shop-name">Bosch</div>
       <div class="details">{% if values.brand %}{{ values.brand }} - {% endif %}{{ values.name }}</div>
-      {% if values.part_number %}<div class="details">PN: {{ values.part_number }}</div>{% endif %}
+      {% if values.part_number %}<div class="details">{{ values.part_number }}</div>{% endif %}
       <div class="code">
         <span class="code-value">{{ values.barcode }}</span>
       </div>
     </div>
     <div class="amount_section">
       <div class="price-text">
-        MRP: <span class="price">{{ values.selling_price|currency_nonDecimal }} /-</span>
+        <span class="price">{{ values.selling_price|currency_nonDecimal }}</span>
       </div>
     </div>
   </div>

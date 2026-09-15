@@ -182,6 +182,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Custom User Model
 AUTH_USER_MODEL = "user.CustomUser"
 
+# Thermal Receipt Printer (55mm/58mm USB raw text print)
+CUPS_PRINTER_NAME = config("CUPS_PRINTER_NAME", default="RTP81")
+USB_PRINTER_PORT = config("USB_PRINTER_PORT", default="/dev/usb/lp0")
+THERMAL_PRINT_WIDTH = config("THERMAL_PRINT_WIDTH", default=32, cast=int)
+
 
 class MaxLevelFilter(logging.Filter):
     def __init__(self, max_level):

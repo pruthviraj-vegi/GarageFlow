@@ -13,13 +13,21 @@
 
   <!-- Screen Toolbar (hidden in print) -->
   <div class="print-actions no-print">
-    <button type="button" class="print-btn" onclick="handlePrint()">
+    <button type="button" class="print-btn" id="directPrintBtn" onclick="handleDirectPrint()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="6 9 6 2 18 2 18 9"></polyline>
         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
         <rect x="6" y="14" width="12" height="8"></rect>
       </svg>
-      Print Receipt (Enter)
+      <span id="directPrintLabel">Direct USB Print (Enter)</span>
+    </button>
+    <button type="button" class="back-btn" onclick="handleBrowserPrint()" style="background:#4b5563;color:#fff;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+        <rect x="6" y="14" width="12" height="8"></rect>
+      </svg>
+      Browser Print
     </button>
     <a href="{% url 'invoice:detail' invoice.pk %}" class="back-btn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -28,6 +36,7 @@
       Back to Invoice (Esc)
     </a>
   </div>
+  <div id="printAlert" class="no-print" style="display:none;max-width:320px;margin:8px auto;padding:8px 12px;border-radius:6px;font-size:13px;text-align:center;"></div>
 
   <!-- 58mm Receipt Ticket -->
   <div class="container">
@@ -168,15 +177,57 @@
   </div>
 
   <script>
-    let printInProgress = false;
+    let isDirectPrinting = false;
 
-    function handlePrint() {
-      if (printInProgress) return;
-      printInProgress = true;
+    function showAlert(msg, isSuccess) {
+      const el = document.getElementById('printAlert');
+      if (!el) return;
+      el.style.display = 'block';
+      el.style.background = isSuccess ? '#dcfce7' : '#fee2e2';
+      el.style.color = isSuccess ? '#15803d' : '#b91c1c';
+      el.style.border = isSuccess ? '1px solid #86efac' : '1px solid #fca5a5';
+      el.textContent = msg;
       setTimeout(() => {
-        window.print();
-        printInProgress = false;
-      }, 100);
+        el.style.display = 'none';
+      }, 4000);
+    }
+
+    function handleDirectPrint() {
+      if (isDirectPrinting) return;
+      isDirectPrinting = true;
+
+      const btn = document.getElementById('directPrintBtn');
+      const label = document.getElementById('directPrintLabel');
+      if (btn) btn.disabled = true;
+      if (label) label.textContent = 'Sending to printer...';
+
+      fetch("{% url 'invoice:direct_print' invoice.pk %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(res => res.json().then(data => ({ status: res.status, data })))
+      .then(({ status, data }) => {
+        if (data.success) {
+          showAlert(data.message || 'Invoice printed successfully!', true);
+        } else {
+          showAlert(data.message || 'Failed to print invoice.', false);
+        }
+      })
+      .catch(err => {
+        showAlert('Error communicating with backend: ' + err.message, false);
+      })
+      .finally(() => {
+        isDirectPrinting = false;
+        if (btn) btn.disabled = false;
+        if (label) label.textContent = 'Direct USB Print (Enter)';
+      });
+    }
+
+    function handleBrowserPrint() {
+      window.print();
     }
 
     document.addEventListener('keydown', function (event) {
@@ -189,14 +240,8 @@
         }
       }
       if (event.key === 'Enter') {
-        handlePrint();
+        handleDirectPrint();
       }
-    });
-
-    window.addEventListener('load', function () {
-      setTimeout(() => {
-        window.print();
-      }, 400);
     });
   </script>
 </body>

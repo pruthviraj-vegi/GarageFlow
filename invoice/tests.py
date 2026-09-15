@@ -114,3 +114,55 @@ class InvoiceAndJobCardSubmitTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 302)  # Redirect to login
 
+    def test_format_invoice_for_usb_print(self):
+        from invoice.printing import format_invoice_for_usb_print, CMD_INIT, CMD_CUT
+        invoice = Invoice.objects.create(
+            customer=self.customer,
+            job_card=self.jc,
+            total_amount=Decimal("2800.00"),
+            notes="Handle with care",
+        )
+        InvoiceItem.objects.create(
+            invoice=invoice,
+            inventory=self.inv,
+            description="Brake Pad Front",
+            quantity=Decimal("2.00"),
+            unit_price=Decimal("1400.00"),
+        )
+        data = format_invoice_for_usb_print(invoice, width=32)
+        self.assertIsInstance(data, bytes)
+        self.assertTrue(data.startswith(CMD_INIT))
+        self.assertTrue(data.endswith(CMD_CUT))
+        self.assertIn(b"GarageFlow", data)
+        self.assertIn(invoice.invoice_number.encode("ascii"), data)
+        self.assertIn(b"Rohit Sharma", data)
+        self.assertIn(b"MH-02-CD-5678", data)
+        self.assertIn(b"BRAKE PAD FRONT", data)
+        self.assertIn(b"TOTAL DUE:", data)
+        self.assertIn(b"Rs. 2,800.00", data)
+
+    def test_invoice_direct_print_endpoint(self):
+        from unittest.mock import patch
+        invoice = Invoice.objects.create(
+            customer=self.customer,
+            total_amount=Decimal("500.00"),
+        )
+        url = reverse("invoice:direct_print", kwargs={"pk": invoice.pk})
+
+        with patch("invoice.printing.send_to_usb_printer") as mock_print:
+            mock_print.return_value = (True, "Printed successfully via /dev/usb/lp0.")
+            res = self.client.post(url)
+            self.assertEqual(res.status_code, 200)
+            json_data = res.json()
+            self.assertTrue(json_data["success"])
+            self.assertIn("Printed successfully", json_data["message"])
+
+        with patch("invoice.printing.send_to_usb_printer") as mock_print:
+            mock_print.return_value = (False, "USB printer not found.")
+            res = self.client.post(url)
+            self.assertEqual(res.status_code, 400)
+            json_data = res.json()
+            self.assertFalse(json_data["success"])
+            self.assertIn("USB printer not found", json_data["message"])
+
+

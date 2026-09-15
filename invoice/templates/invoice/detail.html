@@ -11,9 +11,13 @@
     <p class="page-sub">View invoice details and line items</p>
   </div>
   <div style="display: flex; align-items: center; gap: 12px;">
+    <button type="button" id="btnDirectPrint" onclick="triggerDirectPrint()" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+      <i data-icon="printer"></i>
+      <span id="directPrintText">Direct Print</span>
+    </button>
     <a href="{% url 'invoice:print_58mm' invoice.pk %}" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
       <i data-icon="printer"></i>
-      <span>Print (58mm)</span>
+      <span>Preview (58mm)</span>
     </a>
     <div class="breadcrumb">
       <a href="{% url 'invoice:list' %}">Invoices</a>
@@ -140,4 +144,32 @@
     </div>
   </div>
 </div>
+
+<script>
+  function triggerDirectPrint() {
+    const btn = document.getElementById('btnDirectPrint');
+    const text = document.getElementById('directPrintText');
+    if (btn) btn.disabled = true;
+    if (text) text.textContent = 'Printing...';
+
+    fetch("{% url 'invoice:direct_print' invoice.pk %}", {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(res => res.json().then(data => ({ status: res.status, data })))
+    .then(({ status, data }) => {
+      alert(data.message || (data.success ? 'Invoice sent to printer.' : 'Failed to print.'));
+    })
+    .catch(err => {
+      alert('Printer communication error: ' + err.message);
+    })
+    .finally(() => {
+      if (btn) btn.disabled = false;
+      if (text) text.textContent = 'Direct Print';
+    });
+  }
+</script>
 {% endblock %}

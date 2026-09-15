@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, DetailView
 from django.contrib.messages.views import SuccessMessageMixin
@@ -144,4 +145,21 @@ def invoice_print_58mm(request, pk):
         "title": f"Print {invoice.invoice_number}",
     }
     return render(request, "invoice/print_58mm.html", context)
+
+
+@login_required
+def invoice_direct_print(request, pk):
+    """Send 55mm raw ESC/POS receipt directly to connected USB thermal printer."""
+    from .printing import format_invoice_for_usb_print, send_to_usb_printer
+
+    invoice = get_object_or_404(
+        Invoice.objects.select_related(
+            "customer", "job_card__vehicle_model__make", "created_by"
+        ).prefetch_related("invoice_items__inventory"),
+        pk=pk,
+    )
+    raw_data = format_invoice_for_usb_print(invoice)
+    success, msg = send_to_usb_printer(raw_data)
+    return JsonResponse({"success": success, "message": msg}, status=200 if success else 400)
+
 
